@@ -6,6 +6,7 @@ IMPORTANT NOTES:
 
 USAGE: 
 1. explicit water model
+
 ```watvina --config vina.conf --water water.pdb```
 In the water.pdb file, the energy value in beta factor column, which can be from gist, watsite, 3d-rism, lesite etc.
 2. implicit water model
