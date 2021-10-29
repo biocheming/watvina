@@ -1,0 +1,4 @@
+#watvina
+linux x86/64
+#watvina.exe
+win x86/64
