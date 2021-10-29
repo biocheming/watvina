@@ -1,10 +1,11 @@
 # watvina
-implicit or explicit water model in protein-ligand docking with vina engine. supporting pharmacophore /position constrained docking
-IMPORTANT NOTES:
+Implicit or explicit water model in protein-ligand docking with vina engine. supporting pharmacophore /position constrained docking
+
+##IMPORTANT NOTES:
 1. receptor and ligand should be carefully prepared. Keep all the non-polar and polar hydrogens.
 2. minimize/optimize the ligand carefully. watvina calculates some torsion penalty.
 
-USAGE: 
+##USAGE: 
 1. explicit water model
 
 ```watvina --config vina.conf --water water.pdb```
