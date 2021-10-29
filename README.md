@@ -27,16 +27,25 @@ watvina --config vina.conf --implicitsol
 watvina --config vina.conf --pharma a_txt_file.txt
 ```
 the format of ```a_txt_file.txt```is:
+
 ```name x y z cut_off_distance weight```
+
 for example:
+
 ```ACC 0.0 0.0 0.0 0.3 0.5```
+
 ```ACC```: the hbond acceptor
+
 ```0.0 0.0 0.0```: the coordinate of hbond acceptor 
+
 ```0.3```: the cut off distance is 0.3
+
 ```0.5```: the award weight is 0.5, finally the score is (1+0.5)*watvina_score
 
 other pharmacophores: 
+
 ```DON```: hbond donor;
+
 ```ARO```: for aromatic carbons.
 
 ### 2.4 position constrained docking.
@@ -46,9 +55,13 @@ position constrained docking is useful for FEP, enzymatic pre-active pose predic
 ```
 watvina --config vina.conf --pharma a_txt_file.txt
 ```
+
 similar to pharmacophore constrained docking, the constrained pharmacophore name is:
+
 ```BFA```
+
 the atom in the ligand pdbqt file with beta factor value 100.0 is required. 
+
 
 ### 2.4 The pdbqt files for receptors and ligands are prepared from their pdb file by mgltools
 ```
