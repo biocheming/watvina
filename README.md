@@ -1,10 +1,11 @@
 # Water Model supported protein-ligand docking with Autodock Vina engine. 
 
-For drug design purpose, explicit or implicit waters, pharmacophore or position constrained are supported in watvina. 
+For drug design purpose, explicit or implicit waters, pharmacophore or position constrained docking are supported in watvina. 
 
 ## 1. IMPORTANT NOTES
 ### 1.1 Receptor and ligand(s) should be carefully prepared. KEEP ALL THE NON-POLAR AND POLAR HYDROGENS. 
 ### 1.2 Minimize/Optimize the ligand carefully. Watvina calculates some torsion penalty.
+### 1.3 Hydroxy hydrogens are suggested to be flexible in docking.
 
 
 ## 2 USAGE
