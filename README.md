@@ -95,12 +95,16 @@ Advanced options (see the manual):
                                         implicitsol.pdb
   --randomize_only                      randomize input, attempting to avoid 
                                         clashes
-  --weight_gauss arg (=-0.360000014)    gauss weight
-  --weight_repulsion arg (=0.699999988) repulsion weight
-  --weight_hydrogen arg (=0.600000024)  Hydrogen bond weight
-  --weight_electrop arg (=0.400000006)  Electro polar weight
-  --weight_desol arg (=0.0700000003)    desolvation weight
-  --wclash_dist arg (=1.39999998)       clash distance with water
+  --weight_vdw arg (=0.189999998)       vdw weight
+  --weight_hydrogen arg (=0.569999993)  Hydrogen bond weight
+  --weight_electrop arg (=0.379999995)  Electro polar weight
+  --weight_desol arg (=-1)              desolvation weight[depends on water 
+                                        model used]
+  --wclash_dist arg (=1.39999998)       clash distance with water[depends on 
+                                        water model used]
+  --weight_torsion arg (=1)             external torsion weight[depends on 
+                                        forcefield or unit in kj/mol or 
+                                        kcal/mol]
 
 Misc (optional):
   --cpu arg                             the number of CPUs to use (the default 
@@ -126,5 +130,4 @@ Information (optional):
   --help_advanced                       display usage summary with advanced 
                                         options
   --version                             display program version
-
 ```
