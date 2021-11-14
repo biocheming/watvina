@@ -83,7 +83,7 @@ the format is
 ```
 REMARK TORSION INDEX  i  j  k  l  V/2   theta_0  n
 ```
-
+for examle:
 
 ```
 REMARK TORSION INDEX  18  17  16  21  0.16   0  3
