@@ -11,12 +11,16 @@ For drug design purpose, explicit or implicit waters, pharmacophore or position 
 ## 2 USAGE
 ### 2.1 USAGE for explicit water model
 
+Opendx format was not supported now, but later on it will be online. In addition, the desolvation weight has to be adjusted mannually due to the energy calculated from different methods.
+
 ```
 watvina --config vina.conf --water water.pdb
 ```
 In the ```water.pdb``` file with energy value (calculated from GIST, WATSite, Watermap, lesite etc) in the beta factor column. Keep the Oxygen atoms only, and with a resname ```HOH```. 
 
 ### 2.2 USAGE for implicit water model
+
+Desolvation was calculated from water probe generated energy map
 
 ```
 watvina --config vina.conf --implicitsol
