@@ -1,6 +1,6 @@
 # Water Model supported protein-ligand docking with Autodock Vina engine. 
 
-For drug design purpose, explicit or implicit waters, pharmacophore or position constrained docking are supported in watvina. 
+For drug design purpose, explicit or implicit waters, pharmacophore or position constrained docking, external torsion parameter (in amber/gaff/charmm force field like parameters) are supported in watvina. 
 
 ## 1. IMPORTANT NOTES
 ### 1.1 Receptor and ligand(s) should be carefully prepared. KEEP ALL THE NON-POLAR AND POLAR HYDROGENS. 
@@ -68,7 +68,28 @@ similar to pharmacophore constrained docking, the constrained pharmacophore name
 the atom in the ligand pdbqt file with beta factor value 100.0 is required. 
 
 
-### 2.4 The pdbqt files for receptors and ligands are prepared from their pdb file by mgltools
+### 2.5 The pdbqt files for receptors and ligands are prepared from their pdb file by mgltools, or from rdkit2pdbqt.py(using opencadd,)
+
+```
+rdkit2pdbqt -l lig.sdf
+rdkit2pdbqt -r rec.pdb
+```
+
+### 2.6 External torsion parameter
+
+External torsion parameters in the header of ligand file
+
+the format is
+```
+REMARK TORSION INDEX  i  j  k  l  V/2   theta_0  n
+```
+
+
+```
+REMARK TORSION INDEX  18  17  16  21  0.16   0  3
+```
+
+### 2.7 help information
 ```
 Input:
   --receptor arg                        rigid part of the receptor (PDBQT)
