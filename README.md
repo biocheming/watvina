@@ -121,7 +121,7 @@ Advanced options (see the manual):
   --randomize_only                      randomize input, attempting to avoid 
                                         clashes
   --weight_vdw arg (=0.189999998)       vdw weight
-  --weight_hydrogen arg (=0.569999993)  Hydrogen bond weight
+  --weight_hbond arg (=0.569999993)     Hydrogen bond weight
   --weight_electrop arg (=0.379999995)  Electro polar weight
   --weight_desol arg (=-1)              desolvation weight[depends on water 
                                         model used]
