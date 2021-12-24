@@ -301,6 +301,9 @@ def MolFromPDBQTBlock(block, sanitize=True, removeHs=True):
             atom_type = 'N'
         elif atom_type == 'SA':
             atom_type = 'S'
+        elif atom_type == 'Cl' or atom_type == 'Br':
+            pdb_line = pdb_line[:76]
+
 
         pdb_lines.append(pdb_line + atom_type)
     mol = Chem.MolFromPDBBlock('\n'.join(pdb_lines), sanitize=False)
