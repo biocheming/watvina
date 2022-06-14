@@ -51,7 +51,9 @@ other pharmacophores:
 
 ```DON```: hbond donor;
 
-```ARO```: for aromatic carbons.
+```ARO```: for aromatic carbons;
+```SGM```: Cl, Br, I, S;
+```HYP```: hydrophobic atoms(hydrophobic carbon, Cl, Br, I)
 
 ### 2.4 position constrained docking.
 
