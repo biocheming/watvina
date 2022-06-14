@@ -5,7 +5,7 @@ For drug design purpose, explicit or implicit waters, pharmacophore or position 
 ## 1. IMPORTANT NOTES
 ### 1.1 Receptor and ligand(s) should be carefully prepared. KEEP ALL THE NON-POLAR AND POLAR HYDROGENS. 
 ### 1.2 Minimize/Optimize the ligand carefully. Watvina calculates some torsion penalty.
-### 1.3 Hydroxy hydrogens are suggested to be flexible in docking.
+### 1.3 Hydroxy hydrogens which do not formed intra hydrogen bond in the receptor are suggested to be flexible. Another method is to change the OA and HD atom types to OW and HW respectively.
 
 
 ## 2 USAGE
@@ -117,15 +117,16 @@ Advanced options (see the manual):
                                         omitted
   --local_only                          do local search only
   --implicitsol                         implicit solvation model result in a 
-                                        implicitsol.pdb
+                                        wgrid.pdb
+  --grid_space arg (=0.375)             grid space
   --randomize_only                      randomize input, attempting to avoid 
                                         clashes
-  --weight_vdw arg (=0.189999998)       vdw weight
-  --weight_hbond arg (=0.569999993)     Hydrogen bond weight
-  --weight_electrop arg (=0.379999995)  Electro polar weight
+  --weight_vdw arg (=0.19)       vdw weight
+  --weight_hbond arg (=0.60)     Hydrogen bond weight
+  --weight_electrop arg (=0.38)  Electro polar weight
   --weight_desol arg (=-1)              desolvation weight[depends on water 
                                         model used]
-  --wclash_dist arg (=1.39999998)       clash distance with water[depends on 
+  --wclash_dist arg (=1.4)       clash distance with water[depends on 
                                         water model used]
   --weight_torsion arg (=1)             external torsion weight[depends on 
                                         forcefield or unit in kj/mol or 
