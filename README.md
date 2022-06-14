@@ -18,7 +18,7 @@ watvina --config vina.conf --water water.pdb
 ```
 In the ```water.pdb``` file with energy value (calculated from GIST, WATSite, Watermap, lesite etc) in the beta factor column. Keep the Oxygen atoms only, and with a resname ```HOH```. 
 
-### 2.2 USAGE for implicit water model
+### 2.2 USAGE for 'implicit water' model
 
 Desolvation was calculated from water probe generated energy map
 
