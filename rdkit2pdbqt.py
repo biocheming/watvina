@@ -446,7 +446,6 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
     pdbqt_lines.append('REMARK  Name = ' + (mol.GetProp('_Name') if mol.HasProp('_Name') else ''))
     if flexible:
         # Find rotatable bonds
-        '''
         rot_bond = Chem.MolFromSmarts('[!$(*#*)&!D1&!$(C(F)(F)F)&'
                                       '!$(C(Cl)(Cl)Cl)&'
                                       '!$(C(Br)(Br)Br)&'
@@ -459,8 +458,8 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
                                       '!$(C(Cl)(Cl)Cl)&'
                                       '!$(C(Br)(Br)Br)&'
                                       '!$(C([CH3])([CH3])[CH3])]')
-        '''
-        rot_bond = Chem.MolFromSmarts('[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]')
+        
+        #rot_bond = Chem.MolFromSmarts('[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]')
         bond_atoms = list(mol.GetSubstructMatches(rot_bond))
         num_torsions = len(bond_atoms)
 
