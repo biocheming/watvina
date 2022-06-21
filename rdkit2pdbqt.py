@@ -459,13 +459,12 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
         '''
         #rot_bond = Chem.MolFromSmarts('[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]') # From Chemaxon
         rot_bond  = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]') #single and not ring
-        amide_bonds = Chem.MolFromSmarts('[NX3]-[CX3]=[O,N]') # includes amidines
-        tertiary_amide_bonds = Chem.MolFromSmarts('[NX3]([!#1])([!#1])-[CX3]=[O,N]')
+        amide_bonds = Chem.MolFromSmarts('[NX3]-[CX3]=[O,N]') # includes amidines, From Meeko
+        tertiary_amide_bonds = Chem.MolFromSmarts('[NX3]([!#1])([!#1])-[CX3]=[O,N]')   # From Meeko
         bond_atoms = list(mol.GetSubstructMatches(rot_bond))
         amide_bond_atoms = [(x[0],x[1]) for x in list(mol.GetSubstructMatches(amide_bonds))]
         tertiary_amide_bond_atoms=[(x[0],x[3]) for x in list(mol.GetSubstructMatches(tertiary_amide_bonds))]
         for amide_bond_atom in amide_bond_atoms:
-            #bond_atoms.remove(amide_bond_atom)
             amide_bond_atom_reverse=(amide_bond_atom[1],amide_bond_atom[0])
             if amide_bond_atom in bond_atoms:
                 bond_atoms.remove(amide_bond_atom)
