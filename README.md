@@ -65,12 +65,11 @@ position constrained docking is useful for FEP, enzymatic pre-active pose predic
 watvina --config vina.conf --pharma a_txt_file.txt
 ```
 
-similar to pharmacophore constrained docking, the constrained pharmacophore name is:
+similar to pharmacophore constrained docking, the position constrained pharmacophore name is:
 
-```BFA```
-
-the atom in the ligand pdbqt file with beta factor value 100.0 is required. 
-
+```BFAX```
+The ```X``` is the atom serial number in the ligand pdbqt file.
+for example, ```BFA4```, the atom with serial number ```4``` will be fixed to a position.
 
 ### 2.5 The pdbqt files for receptors and ligands are prepared from their pdb file by mgltools, or from rdkit2pdbqt.py(using opencadd,)
 
