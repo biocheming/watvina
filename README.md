@@ -68,7 +68,9 @@ watvina --config vina.conf --pharma a_txt_file.txt
 similar to pharmacophore constrained docking, the position constrained pharmacophore name is:
 
 ```BFAX```
+
 The ```X``` is the atom serial number in the ligand pdbqt file.
+
 for example, ```BFA4```, the atom with serial number ```4``` will be fixed to a position.
 
 ### 2.5 The pdbqt files for receptors and ligands are prepared from their pdb file by mgltools, or from rdkit2pdbqt.py(using opencadd,)
