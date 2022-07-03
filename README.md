@@ -122,18 +122,19 @@ Advanced options (see the manual):
                                         omitted
   --local_only                          do local search only
   --implicitsol                         implicit solvation model result in a 
-                                        wgrid.pdb
+                                        implicitsol.pdb
   --grid_space arg (=0.375)             grid space
   --randomize_only                      randomize input, attempting to avoid 
                                         clashes
-  --weight_vdw arg (=0.19)       vdw weight
-  --weight_hbond arg (=0.60)     Hydrogen bond weight
-  --weight_electrop arg (=0.38)  Electro polar weight
+  --weight_vdw arg (=0.193000004)       vdw weight
+  --weight_hbond arg (=0.600000024)     Hydrogen bond weight
+  --weight_electrop arg (=0.140000001)  polar repulsion or hydrophobic 
+                                        attraction
   --weight_desol arg (=-1)              desolvation weight[depends on water 
                                         model used]
-  --wclash_dist arg (=1.4)       clash distance with water[depends on 
+  --wclash_dist arg (=1.39999998)       clash distance with water[depends on 
                                         water model used]
-  --weight_torsion arg (=1)             external torsion weight[depends on 
+  --weight_torsion arg (=0.300000012)   external torsion weight[depends on 
                                         forcefield or unit in kj/mol or 
                                         kcal/mol]
 
@@ -142,10 +143,10 @@ Misc (optional):
                                         is to try to detect the number of CPUs 
                                         or, failing that, use 1)
   --seed arg                            explicit random seed
-  --exhaustiveness arg (=8)             exhaustiveness of the global search 
+  --exhaustiveness arg (=6)             exhaustiveness of the global search 
                                         (roughly proportional to time): 1+
-  --population arg (=5)                 population size for genetic algorithm
-  --ga_search arg (=5)                  amplitude for ga searching loop size
+  --population arg (=3)                 population size for genetic algorithm
+  --ga_search arg (=2)                  amplitude for ga searching loop size
   --num_modes arg (=20)                 maximum number of binding modes to 
                                         generate
   --rmsd arg (=1.5)                     modes clustering cutoff
@@ -161,4 +162,5 @@ Information (optional):
   --help_advanced                       display usage summary with advanced 
                                         options
   --version                             display program version
+
 ```
