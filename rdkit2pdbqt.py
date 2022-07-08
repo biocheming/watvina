@@ -405,7 +405,7 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
                        for frag in Chem.GetMolFrags(mol, asMols=True))
 
     # Identify donors and acceptors for atom typing
-    # Acceptors
+    # Acceptors, what about HOH ?
     patt = Chem.MolFromSmarts('[$([O;H1;v2]),'
                               '$([O;H0;v2;!$(O=N-*),'
                               '$([O;-;!$(*-N=O)]),'
@@ -415,7 +415,7 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
                               '$([N&v3;H0;$(Nc)])]),'
                               '$([F;$(F-[#6]);!$(FC[F,Cl,Br,I])])]')
     acceptors = list(map(lambda x: x[0], mol.GetSubstructMatches(patt, maxMatches=mol.GetNumAtoms())))
-    # Donors
+    # Donors ， can not correctly identify HD from HOH
     patt = Chem.MolFromSmarts('[$([N&!H0&v3,N&!H0&+1&v4,n&H1&+0,$([$([Nv3](-C)(-C)-C)]),'
                               '$([$(n[n;H1]),'
                               '$(nc[n;H1])])]),'
