@@ -99,7 +99,7 @@ for examle:
 REMARK TORSION INDEX  18  17  16  21  0.16   0  3
 ```
 
-### 2.7 help information
+### 2.7 Help information
 ```
 Input:
   --receptor arg                        rigid part of the receptor (PDBQT)
