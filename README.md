@@ -54,6 +54,10 @@ other pharmacophores:
 
 ```ARO```: for aromatic carbons;
 
+```PCG```: for positively charged nitrogen;
+
+```NCG```: for negatively charged center;
+
 ```SGM```: Cl, Br, I, S;
 
 ```HYP```: hydrophobic atoms(hydrophobic carbon, Cl, Br, I)
