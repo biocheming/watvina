@@ -54,7 +54,7 @@ other pharmacophores:
 
 ```ARO```: for aromatic carbons;
 
-```PCG```: for positively charged nitrogen;
+```PCG```: for positively charged nitroge or guanidine carbon;
 
 ```NCG```: for negatively charged center;
 
