@@ -62,6 +62,8 @@ other pharmacophores:
 
 ```HYP```: hydrophobic atoms(hydrophobic carbon, Cl, Br, I)
 
+```HVY```: any heavy atoms(not hydrogen)
+
 ### 2.4 position constrained docking.
 
 position constrained docking is useful for FEP, enzymatic pre-active pose prediction...
