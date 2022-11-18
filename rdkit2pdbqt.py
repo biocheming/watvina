@@ -384,8 +384,7 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
             Should the molecule encode torsions. Ligands should be flexible,
             proteins in turn can be rigid.
         addHs: bool (default=False)
-            The PDBQT format requires at least polar Hs on donors. By default Hs
-            are added.
+            Correct protonation state is very important for docking. Are you sure to use rdkit?
         computeCharges: bool (default=False)
             Should the partial charges be automatically computed. If the Hs are
             added the charges must and will be recomputed. If there are no
