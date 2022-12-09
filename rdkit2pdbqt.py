@@ -490,19 +490,20 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
         # Fragment molecule on bonds to ge rigid fragments
         bond_ids = [mol.GetBondBetweenAtoms(a1, a2).GetIdx() 
                     for a1, a2 in bond_atoms]
-
         if bond_ids:
             mol_rigid_frags = Chem.FragmentOnBonds(mol, bond_ids, addDummies=False)
             for b in bond_ids:
                 tmp_frags= Chem.FragmentOnBonds(mol, [b], addDummies=False)
                 tmp_frags_list=list(Chem.GetMolFrags(tmp_frags))
-                tmp_bigger= max(len(tmp_frags_list[0]), len(tmp_frags_list[1]))
-                mol.GetBonds()[b].SetProp("bigger_size", str(tmp_bigger))
+                if len(tmp_frags_list) == 1:
+                    tmp_bigger = len(mol.GetAtoms())
+                else:
+                #print(f'{b} : {len(tmp_frags_list)}')
+                    tmp_bigger= max(len(tmp_frags_list[0]), len(tmp_frags_list[1]))
+                mol.GetBonds()[b].SetProp("large_part", str(tmp_bigger))
         else:
             mol_rigid_frags = mol
         frags = list(Chem.GetMolFrags(mol_rigid_frags))
-
-
 
         def weigh_frags(frag):
             """sort by the fragment size and the number of bonds (secondary)"""
@@ -512,10 +513,10 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
             for a1, a2 in bond_atoms:
                 if a1 in frag or a2 in frag:
                     num_bonds += 1
-                    big_frag_size = max(big_frag_size, int(mol.GetBondBetweenAtoms(a1, a2).GetProp("bigger_size")))
+                    big_frag_size = max(big_frag_size, int(mol.GetBondBetweenAtoms(a1, a2).GetProp("large_part")))
             # changed signs are fixing mixed sorting type (ascending/descending)
             #return -num_bonds, -len(frag),  # bond_weight
-            return big_frag_size, -num_bonds,  # bond_weight
+            return big_frag_size, -num_bonds,   # bond_weight
         frags = sorted(frags, key=weigh_frags)
 
         # Start writting the lines with ROOT
