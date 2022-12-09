@@ -503,7 +503,7 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
                     #         bond_weight += len(frag2)
 
             # changed signs are fixing mixed sorting type (ascending/descending)
-            return -len(frag), -num_bonds,  # bond_weight
+            return -num_bonds, -len(frag),   # bond_weight
         frags = sorted(frags, key=weigh_frags)
 
         # Start writting the lines with ROOT
