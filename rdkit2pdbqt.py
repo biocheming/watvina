@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 '''
 © Copyright 2015, Maciej Wojcikowski Revision caf5d84a.
-Wojcikowski, M., Zielenkiewicz, P. and Siedlecki, P. Open Drug Discovery Toolkit (ODDT): a new open-source player in the drug discovery field. J Cheminform 7, 26 (2015). https://doi.org/10.1186/s13321-015-0078-2
+Wójcikowski, M., Zielenkiewicz, P. & Siedlecki, P. Open Drug Discovery Toolkit (ODDT): a new open-source player in the drug discovery field. J Cheminform 7, 26 (2015). https://doi.org/10.1186/s13321-015-0078-2
+
 Modified by XU Ximing
 xuximing@ouc.edu.cn
-2022,Nov.18
+2021.10.10
 '''
 from __future__ import absolute_import, print_function
 from math import isnan, isinf
@@ -383,7 +384,8 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
             Should the molecule encode torsions. Ligands should be flexible,
             proteins in turn can be rigid.
         addHs: bool (default=False)
-            Correct protonation state is very important for docking. Are you sure to use rdkit?
+            The PDBQT format requires at least polar Hs on donors. By default Hs
+            are added.
         computeCharges: bool (default=False)
             Should the partial charges be automatically computed. If the Hs are
             added the charges must and will be recomputed. If there are no
@@ -403,7 +405,7 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
                        for frag in Chem.GetMolFrags(mol, asMols=True))
 
     # Identify donors and acceptors for atom typing
-    # Acceptors, what about HOH ?
+    # Acceptors
     patt = Chem.MolFromSmarts('[$([O;H1;v2]),'
                               '$([O;H0;v2;!$(O=N-*),'
                               '$([O;-;!$(*-N=O)]),'
@@ -413,7 +415,7 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
                               '$([N&v3;H0;$(Nc)])]),'
                               '$([F;$(F-[#6]);!$(FC[F,Cl,Br,I])])]')
     acceptors = list(map(lambda x: x[0], mol.GetSubstructMatches(patt, maxMatches=mol.GetNumAtoms())))
-    # Donors ， can not correctly identify HD from HOH
+    # Donors
     patt = Chem.MolFromSmarts('[$([N&!H0&v3,N&!H0&+1&v4,n&H1&+0,$([$([Nv3](-C)(-C)-C)]),'
                               '$([$(n[n;H1]),'
                               '$(nc[n;H1])])]),'
@@ -457,12 +459,13 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
         '''
         #rot_bond = Chem.MolFromSmarts('[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]') # From Chemaxon
         rot_bond  = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]') #single and not ring
-        amide_bonds = Chem.MolFromSmarts('[NX3]-[CX3]=[O,N]') # includes amidines, From Meeko
-        tertiary_amide_bonds = Chem.MolFromSmarts('[NX3]([!#1])([!#1])-[CX3]=[O,N]')   # From Meeko
+        amide_bonds = Chem.MolFromSmarts('[NX3]-[CX3]=[O,N]') # includes amidines
+        tertiary_amide_bonds = Chem.MolFromSmarts('[NX3]([!#1])([!#1])-[CX3]=[O,N]')
         bond_atoms = list(mol.GetSubstructMatches(rot_bond))
         amide_bond_atoms = [(x[0],x[1]) for x in list(mol.GetSubstructMatches(amide_bonds))]
         tertiary_amide_bond_atoms=[(x[0],x[3]) for x in list(mol.GetSubstructMatches(tertiary_amide_bonds))]
         for amide_bond_atom in amide_bond_atoms:
+            #bond_atoms.remove(amide_bond_atom)
             amide_bond_atom_reverse=(amide_bond_atom[1],amide_bond_atom[0])
             if amide_bond_atom in bond_atoms:
                 bond_atoms.remove(amide_bond_atom)
@@ -475,35 +478,44 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
 
         num_torsions = len(bond_atoms)
 
+
         # Active torsions header
         pdbqt_lines.append('REMARK  %i active torsions:' % num_torsions)
         pdbqt_lines.append('REMARK  status: (\'A\' for Active; \'I\' for Inactive)')
+        
         for i, (a1, a2) in enumerate(bond_atoms):
             pdbqt_lines.append('REMARK%5.0i  A    between atoms: _%i  and  _%i'
                                % (i + 1, a1 + 1, a2 + 1))
 
         # Fragment molecule on bonds to ge rigid fragments
-        bond_ids = [mol.GetBondBetweenAtoms(a1, a2).GetIdx()
+        bond_ids = [mol.GetBondBetweenAtoms(a1, a2).GetIdx() 
                     for a1, a2 in bond_atoms]
+
         if bond_ids:
             mol_rigid_frags = Chem.FragmentOnBonds(mol, bond_ids, addDummies=False)
+            for b in bond_ids:
+                tmp_frags= Chem.FragmentOnBonds(mol, [b], addDummies=False)
+                tmp_frags_list=list(Chem.GetMolFrags(tmp_frags))
+                tmp_bigger= max(len(tmp_frags_list[0]), len(tmp_frags_list[1]))
+                mol.GetBonds()[b].SetProp("bigger_size", str(tmp_bigger))
         else:
             mol_rigid_frags = mol
         frags = list(Chem.GetMolFrags(mol_rigid_frags))
+
+
 
         def weigh_frags(frag):
             """sort by the fragment size and the number of bonds (secondary)"""
             num_bonds = 0
             # bond_weight = 0
+            big_frag_size=0
             for a1, a2 in bond_atoms:
                 if a1 in frag or a2 in frag:
                     num_bonds += 1
-                    # for frag2 in frags:
-                    #     if a1 in frag2 or a2 in frag2:
-                    #         bond_weight += len(frag2)
-
+                    big_frag_size = max(big_frag_size, int(mol.GetBondBetweenAtoms(a1, a2).GetProp("bigger_size")))
             # changed signs are fixing mixed sorting type (ascending/descending)
-            return -num_bonds, -len(frag),   # bond_weight
+            #return -num_bonds, -len(frag),  # bond_weight
+            return big_frag_size, -num_bonds,  # bond_weight
         frags = sorted(frags, key=weigh_frags)
 
         # Start writting the lines with ROOT
