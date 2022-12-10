@@ -150,9 +150,9 @@ Misc (optional):
                                         is to try to detect the number of CPUs 
                                         or, failing that, use 1)
   --seed arg                            explicit random seed
-  --exhaustiveness arg (=8)             exhaustiveness of the global search 
+  --exhaustiveness arg (=1)             exhaustiveness of the global search 
                                         (roughly proportional to time): 1+
-  --population arg (=5)                 population size for genetic algorithm
+  --population arg (=10)                 population size for genetic algorithm
   --ga_search arg (=1)                  amplitude for ga searching loop size:1,2,3...
   --num_modes arg (=20)                 maximum number of binding modes to 
                                         generate
