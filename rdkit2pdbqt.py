@@ -139,24 +139,6 @@ def MolFromPDBBlock(molBlock,
         result = Chem.SanitizeMol(mol)
         if result != 0:
             return None
-
-    # Debug
-    # for atom in mol.GetAtoms():
-    #     res = atom.GetPDBResidueInfo()
-    #     if res is None:
-    #         continue
-    #     res_name = res.GetResidueName()
-    #     atom_name = res.GetName().strip()
-    #     if atom_name in ['NE2', 'ND1'] and res_name in ['HID', 'HIE', 'HIS']:
-    #         print(res_name,
-    #               atom_name,
-    #               atom.GetDegree(),
-    #               atom.GetTotalValence(),
-    #               atom.GetNumExplicitHs(),
-    #               atom.GetNumImplicitHs(),
-    #               sum(n.GetAtomicNum() == 1 for n in atom.GetNeighbors()),
-    #               sep='\t')
-
     return mol
 
 
@@ -443,21 +425,6 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
     pdbqt_lines.append('REMARK  Name = ' + (mol.GetProp('_Name') if mol.HasProp('_Name') else ''))
     if flexible:
         # Find rotatable bonds
-        '''
-        rot_bond = Chem.MolFromSmarts('[!$(*#*)&!D1&!$(C(F)(F)F)&'
-                                      '!$(C(Cl)(Cl)Cl)&'
-                                      '!$(C(Br)(Br)Br)&'
-                                      '!$(C([CH3])([CH3])[CH3])&'
-                                      '!$([CD3](=[N,O,S])-!@[#7,O,S!D1])&'
-                                      '!$([#7,O,S!D1]-!@[CD3]=[N,O,S])&'
-                                      '!$([CD3](=[N+])-!@[#7!D1])&'
-                                      '!$([#7!D1]-!@[CD3]=[N+])]-!@[!$(*#*)&'
-                                      '!D1&!$(C(F)(F)F)&'
-                                      '!$(C(Cl)(Cl)Cl)&'
-                                      '!$(C(Br)(Br)Br)&'
-                                      '!$(C([CH3])([CH3])[CH3])]')
-        '''
-        #rot_bond = Chem.MolFromSmarts('[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]') # From Chemaxon
         rot_bond  = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]') #single and not ring, really not in ring?
         amide_bonds = Chem.MolFromSmarts('[NX3]-[CX3]=[O,N]') # includes amidines
         tertiary_amide_bonds = Chem.MolFromSmarts('[NX3]([!#1])([!#1])-[CX3]=[O,N]')
@@ -533,21 +500,8 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
                     else:
                         if len_tmp_fg_j > tmp_bigger:
                             tmp_bigger=len_tmp_fg_j
-                #print(f'REMARK FRAG: {i} : {len(frags[i])} : {tmp_bigger} ')
             fg_bigbranch[frags[i]] = tmp_bigger
 
-
-        #def weigh_frags(frag):
-            """sort by the fragment size and the number of bonds (secondary)"""
-            #num_bonds = 0
-            # bond_weight = 0
-            #big_frag_size=0
-            #for a1, a2 in bond_atoms:
-            #    if a1 in frag or a2 in frag:
-            #        num_bonds += 1
-                    #big_frag_size = max(big_frag_size, int(mol.GetBondBetweenAtoms(a1, a2).GetProp("large_part")))
-            # changed signs are fixing mixed sorting type (ascending/descending)
-            #return -num_bonds, -len(frag),  # bond_weight
         def weigh_frags(frag):
             return fg_bigbranch[frag], -fg_num_rotbonds[frag],   # bond_weight
         frags = sorted(frags, key=weigh_frags)
