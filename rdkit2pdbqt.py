@@ -458,7 +458,7 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
                                       '!$(C([CH3])([CH3])[CH3])]')
         '''
         #rot_bond = Chem.MolFromSmarts('[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]') # From Chemaxon
-        rot_bond  = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]') #single and not ring
+        rot_bond  = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]') #single and not ring, really not in ring?
         amide_bonds = Chem.MolFromSmarts('[NX3]-[CX3]=[O,N]') # includes amidines
         tertiary_amide_bonds = Chem.MolFromSmarts('[NX3]([!#1])([!#1])-[CX3]=[O,N]')
         bond_atoms = list(mol.GetSubstructMatches(rot_bond))
@@ -476,33 +476,34 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
             for tertiary_amide_bond_atom in tertiary_amide_bond_atoms:
                 bond_atoms.append(tertiary_amide_bond_atom)
 
-        num_torsions = len(bond_atoms)
-
-
-        # Active torsions header
-        pdbqt_lines.append('REMARK  %i active torsions:' % num_torsions)
-        pdbqt_lines.append('REMARK  status: (\'A\' for Active; \'I\' for Inactive)')
-        
-        for i, (a1, a2) in enumerate(bond_atoms):
-            pdbqt_lines.append('REMARK%5.0i  A    between atoms: _%i  and  _%i'
-                               % (i + 1, a1 + 1, a2 + 1))
 
         # Fragment molecule on bonds to ge rigid fragments
         bond_ids = [mol.GetBondBetweenAtoms(a1, a2).GetIdx() 
                     for a1, a2 in bond_atoms]
         if bond_ids:
-            mol_rigid_frags = Chem.FragmentOnBonds(mol, bond_ids, addDummies=False)
-            for b in bond_ids:
-                tmp_frags= Chem.FragmentOnBonds(mol, [b], addDummies=False)
+            for i, b_index in enumerate(bond_ids):
+                tmp_frags= Chem.FragmentOnBonds(mol, [b_index], addDummies=False)
                 tmp_frags_list=list(Chem.GetMolFrags(tmp_frags))
+                tmp_bigger=0
                 if len(tmp_frags_list) == 1:
-                    tmp_bigger = len(mol.GetAtoms())
+                    del bond_ids[i]
+                    del bond_atoms[i]
                 else:
-                #print(f'{b} : {len(tmp_frags_list)}')
                     tmp_bigger= max(len(tmp_frags_list[0]), len(tmp_frags_list[1]))
-                mol.GetBonds()[b].SetProp("large_part", str(tmp_bigger))
+                mol.GetBonds()[b_index].SetProp("large_part", str(tmp_bigger))
+            mol_rigid_frags = Chem.FragmentOnBonds(mol, bond_ids, addDummies=False)
         else:
             mol_rigid_frags = mol
+
+        num_torsions = len(bond_atoms)
+        # Active torsions header
+        pdbqt_lines.append('REMARK  %i active torsions:' % num_torsions)
+        pdbqt_lines.append('REMARK  status: (\'A\' for Active; \'I\' for Inactive)')
+        for i, (a1, a2) in enumerate(bond_atoms):
+            pdbqt_lines.append('REMARK%5.0i  A    between atoms: _%i  and  _%i'
+                               % (i + 1, a1 + 1, a2 + 1))
+
+
         frags = list(Chem.GetMolFrags(mol_rigid_frags))
 
         def weigh_frags(frag):
