@@ -451,13 +451,9 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
             for i, b_index in enumerate(bond_ids):
                 tmp_frags= Chem.FragmentOnBonds(mol, [b_index], addDummies=False)
                 tmp_frags_list=list(Chem.GetMolFrags(tmp_frags))
-                #tmp_bigger=0
                 if len(tmp_frags_list) == 1:
                     del bond_ids[i]
                     del bond_atoms[i]
-                #else:
-                #    tmp_bigger= max(len(tmp_frags_list[0]), len(tmp_frags_list[1]))
-                #mol.GetBonds()[b_index].SetProp("large_part", str(tmp_bigger))
             mol_rigid_frags = Chem.FragmentOnBonds(mol, bond_ids, addDummies=False)
         else:
             mol_rigid_frags = mol
