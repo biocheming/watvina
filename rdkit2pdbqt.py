@@ -484,13 +484,13 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
             for i, b_index in enumerate(bond_ids):
                 tmp_frags= Chem.FragmentOnBonds(mol, [b_index], addDummies=False)
                 tmp_frags_list=list(Chem.GetMolFrags(tmp_frags))
-                tmp_bigger=0
+                #tmp_bigger=0
                 if len(tmp_frags_list) == 1:
                     del bond_ids[i]
                     del bond_atoms[i]
-                else:
-                    tmp_bigger= max(len(tmp_frags_list[0]), len(tmp_frags_list[1]))
-                mol.GetBonds()[b_index].SetProp("large_part", str(tmp_bigger))
+                #else:
+                #    tmp_bigger= max(len(tmp_frags_list[0]), len(tmp_frags_list[1]))
+                #mol.GetBonds()[b_index].SetProp("large_part", str(tmp_bigger))
             mol_rigid_frags = Chem.FragmentOnBonds(mol, bond_ids, addDummies=False)
         else:
             mol_rigid_frags = mol
@@ -503,21 +503,53 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
             pdbqt_lines.append('REMARK%5.0i  A    between atoms: _%i  and  _%i'
                                % (i + 1, a1 + 1, a2 + 1))
 
+        frags = list(Chem.GetMolFrags(mol_rigid_frags))        
+        #list frag  from which bonds ?
+        fg_bonds=[]
+        fg_num_rotbonds={}
+        for fg in frags:
+            tmp_bonds=[]
+            for a1,a2 in bond_atoms:
+                if a1 in fg or a2 in fg:
+                    tmp_bonds.append(mol.GetBondBetweenAtoms(a1, a2).GetIdx())
+            if tmp_bonds:
+                fg_bonds.append(tmp_bonds)
+            else:
+                fg_bonds.append(None)
+            fg_num_rotbonds[fg] = len(tmp_bonds)
 
-        frags = list(Chem.GetMolFrags(mol_rigid_frags))
+        # frag with long branch ?
+        fg_bigbranch={}
+        for i, fg_bond in enumerate(fg_bonds):
+            tmp_bigger=0
+            frag_i_mol=frags[i]
+            if fg_bond != None: # for rigid mol
+                tmp_frags= Chem.FragmentOnBonds(mol, fg_bond, addDummies=False)
+                tmp_frags_list=list(Chem.GetMolFrags(tmp_frags))
+                for tmp_frag_j in tmp_frags_list:
+                    len_tmp_fg_j=len(tmp_frag_j)
+                    if frag_i_mol == tmp_frag_j:
+                        pass
+                    else:
+                        if len_tmp_fg_j > tmp_bigger:
+                            tmp_bigger=len_tmp_fg_j
+                #print(f'REMARK FRAG: {i} : {len(frags[i])} : {tmp_bigger} ')
+            fg_bigbranch[frags[i]] = tmp_bigger
 
-        def weigh_frags(frag):
+
+        #def weigh_frags(frag):
             """sort by the fragment size and the number of bonds (secondary)"""
-            num_bonds = 0
+            #num_bonds = 0
             # bond_weight = 0
-            big_frag_size=0
-            for a1, a2 in bond_atoms:
-                if a1 in frag or a2 in frag:
-                    num_bonds += 1
-                    big_frag_size = max(big_frag_size, int(mol.GetBondBetweenAtoms(a1, a2).GetProp("large_part")))
+            #big_frag_size=0
+            #for a1, a2 in bond_atoms:
+            #    if a1 in frag or a2 in frag:
+            #        num_bonds += 1
+                    #big_frag_size = max(big_frag_size, int(mol.GetBondBetweenAtoms(a1, a2).GetProp("large_part")))
             # changed signs are fixing mixed sorting type (ascending/descending)
             #return -num_bonds, -len(frag),  # bond_weight
-            return big_frag_size, -num_bonds,   # bond_weight
+        def weigh_frags(frag):
+            return fg_bigbranch[frag], -fg_num_rotbonds[frag],   # bond_weight
         frags = sorted(frags, key=weigh_frags)
 
         # Start writting the lines with ROOT
