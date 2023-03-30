@@ -346,7 +346,7 @@ def PDBQTAtomLines(mol, donors, acceptors):
             pdbqt_line += 'HD'
         elif atomicnum == 1 and atom.GetNeighbors()[0].GetIdx() not in donors:
             pdbqt_line += 'H '
-        elif atomicnum == 16 and (atomhybridization == Chem.HybridizationType.SP3 or atomhybridization == Chem.HybridizationType.SP2):
+        elif atomicnum == 16 and (atomhybridization == Chem.HybridizationType.SP3 or atomhybridization == Chem.HybridizationType.SP2): #Big Bug Here!!
             pdbqt_line += 'SA'
         else:
             pdbqt_line += atom.GetSymbol()
