@@ -103,6 +103,7 @@ REMARK TORSION INDEX  18  17  16  21  0.16   0  3
 
 ### 2.7 Help information
 ```
+
 Input:
   --receptor arg                        rigid part of the receptor (PDBQT)
   --flex arg                            flexible part of the receptor (pdbqt)
@@ -130,30 +131,30 @@ Advanced options (see the manual):
   --local_only                          do local search only
   --implicitsol                         implicit solvation model result in a 
                                         implicitsol.pdb
-  --grid_space arg (=0.375)             grid space
+  --grid_space arg (=0.35)              grid space
   --randomize_only                      randomize input, attempting to avoid 
                                         clashes
-  --weight_vdw arg (=0.193000004)       vdw weight
-  --weight_hbond arg (=0.600000024)     Hydrogen bond weight
-  --weight_electrop arg (=0.140000001)  polar repulsion or hydrophobic 
-                                        attraction
-  --weight_desol arg (=-1)              desolvation weight[depends on water 
-                                        model used]
-  --wclash_dist arg (=1.39999998)       clash distance with water[depends on 
-                                        water model used]
-  --weight_torsion arg (=0.300000012)   external torsion weight[depends on 
-                                        forcefield or unit in kj/mol or 
-                                        kcal/mol]
+  --weight_vdw arg (=0.18)              vdw weight
+  --weight_hbond arg (=0.60)            Hydrogen bond weight
+  --weight_electrop arg (=0.15)         polar repulsion or hydrophobic attraction
+  --weight_desol arg (=-0.5)            desolvation weight[depends on water model used]
+  --wclash_dist arg (=0.5)              clash distance with water[depends on  water model used]
+  --weight_torsion arg (=0.30)          external torsion weight[depends on forcefield or unit in kj/mol or kcal/mol]
+  
+  --local_steps arg (=5000)             local relax steps
+  --tramplitude arg (=1)                amplitude for translation/rotation in local relax
+  --rotamplitude arg (=0.2)             amplitude for torsion in local relax
 
 Misc (optional):
   --cpu arg                             the number of CPUs to use (the default 
                                         is to try to detect the number of CPUs 
                                         or, failing that, use 1)
   --seed arg                            explicit random seed
-  --exhaustiveness arg (=8)             exhaustiveness of the global search 
+  --exhaustiveness arg (=4)             exhaustiveness of the global search 
                                         (roughly proportional to time): 1+
   --population arg (=5)                 population size for genetic algorithm
-  --ga_search arg (=2)                  amplitude for ga searching loop size:1,2,3...
+  --ga_search arg (=2)                  amplitude for ga searching loop size: 
+                                        0, 1, 2...
   --num_modes arg (=20)                 maximum number of binding modes to 
                                         generate
   --rmsd arg (=1.5)                     modes clustering cutoff
