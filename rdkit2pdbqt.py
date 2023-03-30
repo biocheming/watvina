@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
-(c)Copyright 2015, Maciej Wojcikowski Revision caf5d84a.
-Wojcikowski, M., Zielenkiewicz, P. & Siedlecki, P. Open Drug Discovery Toolkit (ODDT): a new open-source player in the drug discovery field. J Cheminform 7, 26 (2015). https://doi.org/10.1186/s13321-015-0078-2
+© Copyright 2015, Maciej Wojcikowski Revision caf5d84a.
+Wójcikowski, M., Zielenkiewicz, P. & Siedlecki, P. Open Drug Discovery Toolkit (ODDT): a new open-source player in the drug discovery field. J Cheminform 7, 26 (2015). https://doi.org/10.1186/s13321-015-0078-2
 
 Modified by XU Ximing
 xuximing@ouc.edu.cn
@@ -14,7 +14,7 @@ from itertools import combinations
 import rdkit
 from rdkit import Chem
 from rdkit.Chem import AllChem
-
+from rdkit.Chem.rdchem import BondType
 import sys
 
 METALS = (3, 4, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
@@ -139,6 +139,24 @@ def MolFromPDBBlock(molBlock,
         result = Chem.SanitizeMol(mol)
         if result != 0:
             return None
+
+    # Debug
+    # for atom in mol.GetAtoms():
+    #     res = atom.GetPDBResidueInfo()
+    #     if res is None:
+    #         continue
+    #     res_name = res.GetResidueName()
+    #     atom_name = res.GetName().strip()
+    #     if atom_name in ['NE2', 'ND1'] and res_name in ['HID', 'HIE', 'HIS']:
+    #         print(res_name,
+    #               atom_name,
+    #               atom.GetDegree(),
+    #               atom.GetTotalValence(),
+    #               atom.GetNumExplicitHs(),
+    #               atom.GetNumImplicitHs(),
+    #               sum(n.GetAtomicNum() == 1 for n in atom.GetNeighbors()),
+    #               sep='\t')
+
     return mol
 
 
@@ -336,6 +354,7 @@ def PDBQTAtomLines(mol, donors, acceptors):
         pdbqt_line += ' '
         atomicnum = atom.GetAtomicNum()
         atomhybridization = atom.GetHybridization()
+        atombondsnum = atom.GetDegree()
         if atomicnum == 6 and atom.GetIsAromatic():
             pdbqt_line += 'A'
         elif atomicnum == 7 and idx in acceptors:
@@ -346,7 +365,7 @@ def PDBQTAtomLines(mol, donors, acceptors):
             pdbqt_line += 'HD'
         elif atomicnum == 1 and atom.GetNeighbors()[0].GetIdx() not in donors:
             pdbqt_line += 'H '
-        elif atomicnum == 16 and (atomhybridization == Chem.HybridizationType.SP3 or atomhybridization == Chem.HybridizationType.SP2): #Big Bug Here!!
+        elif atomicnum == 16 and ( (atomhybridization == Chem.HybridizationType.SP3 and atombondsnum != 4) or atomhybridization == Chem.HybridizationType.SP2 ):
             pdbqt_line += 'SA'
         else:
             pdbqt_line += atom.GetSymbol()
@@ -425,6 +444,21 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
     pdbqt_lines.append('REMARK  Name = ' + (mol.GetProp('_Name') if mol.HasProp('_Name') else ''))
     if flexible:
         # Find rotatable bonds
+        '''
+        rot_bond = Chem.MolFromSmarts('[!$(*#*)&!D1&!$(C(F)(F)F)&'
+                                      '!$(C(Cl)(Cl)Cl)&'
+                                      '!$(C(Br)(Br)Br)&'
+                                      '!$(C([CH3])([CH3])[CH3])&'
+                                      '!$([CD3](=[N,O,S])-!@[#7,O,S!D1])&'
+                                      '!$([#7,O,S!D1]-!@[CD3]=[N,O,S])&'
+                                      '!$([CD3](=[N+])-!@[#7!D1])&'
+                                      '!$([#7!D1]-!@[CD3]=[N+])]-!@[!$(*#*)&'
+                                      '!D1&!$(C(F)(F)F)&'
+                                      '!$(C(Cl)(Cl)Cl)&'
+                                      '!$(C(Br)(Br)Br)&'
+                                      '!$(C([CH3])([CH3])[CH3])]')
+        '''
+        #rot_bond = Chem.MolFromSmarts('[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]') # From Chemaxon
         rot_bond  = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]') #single and not ring, really not in ring?
         amide_bonds = Chem.MolFromSmarts('[NX3]-[CX3]=[O,N]') # includes amidines
         tertiary_amide_bonds = Chem.MolFromSmarts('[NX3]([!#1])([!#1])-[CX3]=[O,N]')
@@ -445,15 +479,19 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
 
 
         # Fragment molecule on bonds to ge rigid fragments
-        bond_ids = [mol.GetBondBetweenAtoms(a1, a2).GetIdx() 
+        bond_ids = [mol.GetBondBetweenAtoms(a1, a2).GetIdx()
                     for a1, a2 in bond_atoms]
         if bond_ids:
             for i, b_index in enumerate(bond_ids):
                 tmp_frags= Chem.FragmentOnBonds(mol, [b_index], addDummies=False)
                 tmp_frags_list=list(Chem.GetMolFrags(tmp_frags))
+                #tmp_bigger=0
                 if len(tmp_frags_list) == 1:
                     del bond_ids[i]
                     del bond_atoms[i]
+                #else:
+                #    tmp_bigger= max(len(tmp_frags_list[0]), len(tmp_frags_list[1]))
+                #mol.GetBonds()[b_index].SetProp("large_part", str(tmp_bigger))
             mol_rigid_frags = Chem.FragmentOnBonds(mol, bond_ids, addDummies=False)
         else:
             mol_rigid_frags = mol
@@ -466,7 +504,7 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
             pdbqt_lines.append('REMARK%5.0i  A    between atoms: _%i  and  _%i'
                                % (i + 1, a1 + 1, a2 + 1))
 
-        frags = list(Chem.GetMolFrags(mol_rigid_frags))        
+        frags = list(Chem.GetMolFrags(mol_rigid_frags))
         #list frag  from which bonds ?
         fg_bonds=[]
         fg_num_rotbonds={}
@@ -496,8 +534,21 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
                     else:
                         if len_tmp_fg_j > tmp_bigger:
                             tmp_bigger=len_tmp_fg_j
+                #print(f'REMARK FRAG: {i} : {len(frags[i])} : {tmp_bigger} ')
             fg_bigbranch[frags[i]] = tmp_bigger
 
+
+        #def weigh_frags(frag):
+            """sort by the fragment size and the number of bonds (secondary)"""
+            #num_bonds = 0
+            # bond_weight = 0
+            #big_frag_size=0
+            #for a1, a2 in bond_atoms:
+            #    if a1 in frag or a2 in frag:
+            #        num_bonds += 1
+                    #big_frag_size = max(big_frag_size, int(mol.GetBondBetweenAtoms(a1, a2).GetProp("large_part")))
+            # changed signs are fixing mixed sorting type (ascending/descending)
+            #return -num_bonds, -len(frag),  # bond_weight
         def weigh_frags(frag):
             return fg_bigbranch[frag], -fg_num_rotbonds[frag],   # bond_weight
         frags = sorted(frags, key=weigh_frags)
@@ -575,6 +626,12 @@ if __name__ == "__main__":
 
     if sys.argv[1] == '-r':
         receptor_mol=Chem.MolFromPDBFile(sys.argv[2], removeHs=False)
+        #AllChem.AssignBondOrdersFromTemplate(receptor_mol,receptor_mol)
+        # detect aromaticity
+        #AllChem.AssignAtomChiralTagsFromStructure(receptor_mol)
+        #AllChem.AssignBondOrdersFromTemplate(Chem.MolFromSmarts('[a]'), receptor_mol)
+        #Chem.AssignStereochemistry(receptor_mol)
+
         receptor_lines=MolToPDBQTBlock(receptor_mol, False, False, True)
         print(receptor_lines)
         exit()
