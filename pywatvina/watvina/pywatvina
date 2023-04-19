@@ -370,7 +370,8 @@ if __name__ == '__main__':
 				min_rmsd=watvinaPars['rmsd'],
 				energy_range=watvinaPars['energy_range'],
 				population_size=watvinaPars['population'],
-				ga_searching=watvinaPars['ga_search'])
+				ga_searching=watvinaPars['ga_search'],
+				refinement=True, tramplitude=watvinaPars['tramplitude'])
 	
 	#output pdbqt file
 	if wv._out_format == 'pdbqt':
