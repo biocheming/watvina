@@ -1,0 +1,419 @@
+#! /usr/bin/env python
+#  -*- coding: UTF-8 -*-
+#  By Ximing XU, xuximing@ouc.edu.cn
+# pywatvina based on the Autodock vina 1.2 
+import argparse, configparser
+import time
+import sys
+import os
+
+import glob
+import stat
+
+from watvina.watvina_wrapper import WATVina as _WATVina
+from watvina.rdkit2pdbqt import *
+
+def N4_is_right(mol):
+	mol_problems = Chem.DetectChemistryProblems(mol)
+	if len(mol_problems) > 0:
+		for problem in mol_problems:
+			if "N, 4" in problem.Message():
+				at_idx = problem.GetAtomIdx()
+				atom = mol.GetAtomWithIdx(at_idx)
+				chg = atom.GetFormalCharge()
+				print(f'Atom N {at_idx} with formal charge {chg}')
+				atom.SetFormalCharge(1)
+				atom.UpdatePropertyCache()
+			else:
+				print(problem.Message())
+				exit()
+	Chem.SanitizeMol(mol)
+	return mol
+
+class WATVina:
+	def __init__(self,cpu=1,seed=0,verbosity=1):
+		self._watvina = _WATVina(cpu,seed,verbosity)
+		self._weights = (0.193,0.600,0.1500)
+		self._extra_constraints= (-0.500, 0.500, 0.300)
+		self._receptor     = None
+		self._flex         = None
+		self._ligand       = None
+		self._RDligand     = None
+		self._box_center   = None
+		self._box_size     = None
+		self._spacing      = 0.375
+		self._out_format   = None
+	
+	def cite(self):
+		self._watvina.cite()
+
+	def set_receptor(self, rigid_name=None, flex_name=None):
+		if rigid_name is None:
+			raise ValueError('Error: No receptor file was specified.')
+		
+		if rigid_name is not None:
+			if not os.path.exists(rigid_name):
+				raise RuntimeError(f'Error: file {rigid_name} does not exist.')
+			_,extenstion = os.path.splitext(rigid_name)
+			if extenstion == '.pdbqt':
+					self._watvina.set_receptor(rigid_name)
+					self._receptor = rigid_name
+			elif extenstion == ".pdb":
+				receptor_mol=Chem.MolFromPDBFile(rigid_name, removeHs=False)
+				receptor_lines=MolToPDBQTBlock(receptor_mol, False, False, True)
+				self._watvina.set_receptor_from_string(receptor_lines)
+				self._receptor = rigid_name
+			else:
+				raise TypeError('Error: set_receptor function needs PDBQT file for receptor.')
+			
+			if flex_name is not None:
+				raise TypeError('Error: Flex_residue is not surpported currently')
+
+	def set_weights(self,weight_vdw=0.193,weight_hb=0.6,weight_elep=0.15):
+		self._watvina.set_watvina_weights(weight_vdw,weight_hb,weight_elep)
+
+	def set_extra_weights(self,weight_desol=-0.500, wclash_dist=0.500, weight_torsion=0.300):
+		self._watvina.set_extra_constraints(weight_desol,wclash_dist,weight_torsion)
+
+	def set_water(self,water_name,implicitsol=False):
+		self._watvina.set_water(water_name,implicitsol)
+
+	def set_pharma(self,pharma_name):
+		self._watvina.set_pharmacophore_from_file(pharma_name)
+
+	def set_ligand(self, ligand_name):
+		if ligand_name is None:
+			raise ValueError('Error: No ligand file was specified.')
+		
+		if not os.path.exists(ligand_name):
+			raise RuntimeError(f'Error: file {ligand_name} does not exist.')
+		else:
+			basename,extenstion = os.path.splitext(ligand_name)
+			if extenstion == '.pdbqt':
+				self._watvina.set_ligand_from_file(ligand_name)
+				self._out_format = 'pdbqt'
+				self._ligand = basename
+			elif (extenstion == '.sdf') or (extenstion == '.mol'):
+				ligand_mol=Chem.MolFromMolFile(ligand_name,removeHs=False, sanitize=False)
+				ligand_mol=N4_is_right(ligand_mol)
+				ligand_lines=MolToPDBQTBlock(ligand_mol, True, False, True)
+				self._watvina.set_ligand_from_string(ligand_lines)
+				self._out_format = 'sdf'
+				self._RDligand   = ligand_mol
+				self._ligand = basename
+				self._watvina.pose_atomids=[x-1 for x in self._watvina.pose_atomids]
+			else:
+				raise TypeError('Error: set_ligand function needs PDBQT or sdf [mol] file for ligand.')
+
+	def set_box_center(self, box_center):
+		self._box_center = box_center
+		return box_center
+
+	def set_box_size(self, box_size):
+		self._box_size = box_size
+		return box_size
+	def set_box(self,box_center,box_size,granularity):
+		self._spacing = granularity
+		self._watvina.set_grid_dims(box_center[0],box_center[1],box_center[2],box_size[0],box_size[1],box_size[2], granularity)
+
+	def precalculate(self,full_atom_type=False):
+		self._watvina.set_precalculate_sf(prec_full_atomtypes=full_atom_type)
+
+	def compute_watvina_map(self):
+		self._watvina.compute_watvina_maps()
+
+	def dock(self,exhaustiveness=10,n_poses=20,min_rmsd=1.5,energy_range=3,population_size=8,ga_searching=4,refinement=True,tramplitude=1.00):
+		self._watvina.global_search(exhaustiveness,n_poses,min_rmsd,energy_range,population_size,ga_searching,refinement,tramplitude)
+	
+	def score(self):
+		return self._watvina.score()
+	
+	def write_pdbqt_poses(self, out_name, num_poses):
+		self._watvina.write_poses(out_name,num_poses)
+	
+	def optimize(self, max_steps=100, tramplitude=1.00):
+		return self._watvina.optimize(max_steps,tramplitude)
+	
+	def relax(self, relax_steps=500, tramplitude=1.00, rotamplitude=1.00):
+		self._watvina.relax_structure(relax_steps, tramplitude, rotamplitude)
+		
+
+
+def show_version():
+    print("pyWATVina version: Beta2023.04.15")
+
+
+class ShareArgs():
+	args = {
+		"cpu" : 2,
+		"seed" : 0,
+		"verbosity" : 1, 
+
+		#input
+		"receptor": None,
+		"flex"    : None,
+		"ligand"  : None,
+		
+		#constraints
+		"pharma"    : None,
+		"water"     : None,
+		"implicitsol"    : False,
+		"wclash_dist"    : 0.500,
+		"weight_desol"   :-0.500,
+		"weight_torsion" : 0.300,
+
+		#grid
+		"grid_space" : 0.350,
+		"center_x"   : None,
+		"center_y"   : None, 
+		"center_z"   : None,
+		"size_x"     : None, 
+		"size_y"     : None,
+		"size_z"     : None,
+
+		#global search and GA
+		"energy_range"   : 3.0,
+		"exhaustiveness" : 10, 
+		"population_size": 8,
+		"ga_searching  " : 4,
+		"num_modes "     : 20,
+		"rmsd"           : 1.5,	
+
+		#weight
+		"weight_vdw"      :  0.193,
+		"weight_hbond"    :  0.600,
+		"weight_electrop" :  0.150,
+
+		#local_search or score only
+		"score_only"   : False,
+		"local_only"   : False,
+		"relax_only"   : False,
+		"local_steps"  : 500,
+		"tramplitude"  : 1.00,
+		"rotamplitude" : 1.00,
+		
+		#out
+		"out"          : None
+	}
+	
+	def get_args():  
+		return ShareArgs.args
+
+	def set_args(args):  
+		ShareArgs.args = args
+
+	def set_args_value(key, value):  
+		ShareArgs.args[key] = value
+
+	def get_args_value(key, default_value=None):  
+		return ShareArgs.args.get(key, default_value)
+
+	def contain_key(key):  
+		return key in ShareArgs.args.keys()
+
+	def update(args):  
+		ShareArgs.args.update(args)
+
+class UniqueStore(argparse.Action): 
+	def __call__(self, parser, namespace, values, option_string):
+		if getattr(namespace, self.dest, self.default) is not self.default:
+			parser.error(option_string +" appears several times.")
+		setattr(namespace, self.dest, values)
+	
+def parse_args():
+	parser = argparse.ArgumentParser()
+	#from config file
+	parser.add_argument("-c", "--config", type=str, required=False, action=UniqueStore, help='Config file')
+	
+	#[INPUTS]
+	parser.add_argument("-r", "--receptor", type=str, required=False, action=UniqueStore, help='Receptor file [.pdbqt, .pdb]')
+	parser.add_argument("-l", "--ligand",   type=str, required=False, action=UniqueStore, help='Ligand file [.sdf]')
+	parser.add_argument("-f", "--flex",     type=str, required=False, action=UniqueStore, help='Flexible Residue(s) [.pdbqt]')
+
+	#[CONSTRAINTS]
+	parser.add_argument("-p", "--pharma", type=str, required=False, action=UniqueStore,help='Text file for pharmacophore description')
+	parser.add_argument("-w", "--water",  type=str, required=False, action=UniqueStore,help='Explicit Water Model file [.pdb]')
+	parser.add_argument('--implicitsol',  action='store_true',     help='Watvina water probe method')
+	parser.add_argument("--weight_desol",  type=float, default=0.500,action=UniqueStore,  help='Desolvation weight [ -0.500 ]')
+	parser.add_argument("--wclash_dist",    type=float, default=0.500,action=UniqueStore, help='Clash distance to water [ -0.500 ]')
+	parser.add_argument("--weight_torsion",  type=float, default=0.300,action=UniqueStore, help='Torsion weight [ 0.300 ]')
+
+	
+	#[GRID]
+	parser.add_argument("--grid_space",  type=float, default=0.3500,action=UniqueStore,  help='Grid space for map [ 0.350 ]')
+	parser.add_argument("--center_x",  type=float,action=UniqueStore,  help='Grid Center X')
+	parser.add_argument("--center_y",  type=float,action=UniqueStore,  help='Grid Center Y')
+	parser.add_argument("--center_z",  type=float,action=UniqueStore,  help='Grid Center Z')
+	parser.add_argument("--size_x",  type=float,action=UniqueStore,  help='Grid size X')
+	parser.add_argument("--size_y",  type=float,action=UniqueStore,  help='Grid size Y')
+	parser.add_argument("--size_z",  type=float, action=UniqueStore, help='Grid size Z')
+
+	#[OUT]
+	parser.add_argument("-o", "--out", type=str, required=False, action=UniqueStore,   help='Output ligand conformation [ .sdf]')
+	parser.add_argument("--log", type=str, required=False, action=UniqueStore,   help='Log information [ NOT WORKING ! ]')
+	#[LOCAL]
+	parser.add_argument('--score_only', action='store_true',     help='Score only mode')
+	parser.add_argument('--local_only', action='store_true',     help='Local optimization by BFGS only mode')
+	parser.add_argument('--randomize_only', action='store_true',     help='Random Search only mode [not working in current version]')
+
+	#[GLOBAL]
+	parser.add_argument("--cpu",  type=int,  default=os.cpu_count(), action=UniqueStore,  help='CPU Core number to be used [ >0 ]')
+	parser.add_argument("--seed",  type=int, default=0, action=UniqueStore,  help='Random seed [ 0 ]')
+	parser.add_argument("--exhaustiveness",  type=int, default=10, action=UniqueStore, help='Task number for searching [ 10 ]')
+	parser.add_argument("--population",  type=int, default=8,action=UniqueStore,  help='Population size for GA [ 8 ]')
+	parser.add_argument("--ga_search",   type=int, default=4, action=UniqueStore, help='Amplitude of interation for GA [ 4 ]')
+	parser.add_argument("--num_modes",   type=int, default=20,action=UniqueStore,  help='Pose number to be generated at most [ 20 ]')
+	parser.add_argument("--rmsd",        type=float, default=1.500,action=UniqueStore,  help='RMSD for pose clustering [ 1.50 ]')
+	parser.add_argument("--energy_range",type=float, default=3.00, action=UniqueStore,  help='Energy range for output [ 3.0 ]')
+	
+	#[RELAX]
+	parser.add_argument('--relax_only',  action='store_true',   help='Just do local search')
+	parser.add_argument("--local_steps",  type=int,  default=500, action=UniqueStore, help='Local search steps')
+	parser.add_argument("--tramplitude", type=float, default=1.00, action=UniqueStore,  help='Amplitude for ROOT part translation or rotation [1.0]')
+	parser.add_argument("--rotamplitude", type=float, default=1.00, action=UniqueStore,  help='Torsion searching space  [-x*pi, x*pi]')
+	
+	#[WEIGHTS]
+	parser.add_argument("--weight_vdw",type=float, default= 0.193,action=UniqueStore,   help='VDW weight [ 0.193 ]')
+	parser.add_argument("--weight_hbond",type=float, default= 0.600, action=UniqueStore,  help='Hydrogen bond weight [ 0.600 ]')
+	parser.add_argument("--weight_electrop",type=float, default= 0.150, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.150 ]')
+
+	#[INFORMATION]
+	#parser.add_argument("-h", "--help", type=bool, required=False,    help='Help information')
+	parser.add_argument("--help_advanced", type=bool, required=False,    help='Help information advanced [ NOT WORKING ! ]')
+	parser.add_argument("-v", "--version", type=bool, required=False,    help='Version information [NOT WORKING]')
+
+	
+	args = parser.parse_args()
+	return args
+
+def typing_arg(argkey, argvalue):
+	farglist = ["wclash_dist" , "weight_desol" , "weight_torsion" , "grid_space" , 
+	   			"center_x" , "center_y" , "center_z" , "size_x" , "size_y" , "size_z" , 
+				"energy_range" , "rmsd" , 
+				"weight_vdw" , "weight_hbond" , "weight_electrop" ,  
+				"tramplitude" , "rotamplitude"]
+	barglist = ["implicitsol", "score_only", "local_only", "relax_only"]
+	iarglist = ["cpu", "seed" , "verbosity" , "exhaustiveness" , "population_size" , "ga_searching  " , "num_modes ", "local_steps"]
+
+	if argkey in barglist:
+		argvalue = bool(argvalue)
+	elif argkey in iarglist:
+		argvalue = int(argvalue)
+	elif argkey in farglist:
+		argvalue = float(argvalue)
+	return argvalue    
+def read_config_file(config):
+	conf = {}
+	with open(config) as fp:
+		for line in fp:
+			if line.startswith('#'):
+				continue
+			if "=" in line:
+				key, val = line.strip().split('=')
+				key_strip = key.strip()
+				val_strip = val.strip()
+				val_strip=typing_arg(key_strip, val_strip)
+				conf[key_strip] = val_strip
+	return conf
+
+    
+if __name__ == '__main__':
+	input_args = parse_args()
+	args2vars = vars(input_args)
+	ShareArgs.update(args2vars)
+	if args2vars['config'] is not None:
+		config_contents=read_config_file(input_args.config)
+		ShareArgs.update(config_contents)
+	print("==WATVina Task Parameters==")
+	watvinaPars=ShareArgs.args	
+	print(watvinaPars)
+
+	#setup watvina task
+	wv = WATVina(watvinaPars['cpu'], watvinaPars['seed'], watvinaPars['verbosity'])
+	#wv = WATVina(1,0,1)
+	wv.set_receptor(watvinaPars['receptor'])
+	if (watvinaPars['water'] is not None) or (watvinaPars['implicitsol']):
+		wv.set_water(watvinaPars['water'],watvinaPars['implicitsol'])
+	if watvinaPars['pharma'] is not None:
+		wv.set_pharma(watvinaPars['pharma'])
+	wv.set_weights(watvinaPars['weight_vdw'],watvinaPars['weight_hbond'],watvinaPars['weight_electrop'])
+	wv.set_extra_weights(watvinaPars['weight_desol'],watvinaPars['wclash_dist'],watvinaPars['weight_torsion'])
+	box_center=(watvinaPars['center_x'],watvinaPars['center_y'],watvinaPars['center_z'])
+	box_size=(watvinaPars['size_x'],watvinaPars['size_y'],watvinaPars['size_z'])
+	wv.set_box(box_center,box_size,watvinaPars['grid_space'])
+	
+	wv.set_ligand(watvinaPars['ligand'])
+	if watvinaPars['out'] is None:
+		if wv._out_format == "sdf":
+			watvinaPars['out'] = wv._ligand + '_out.sdf'
+		elif wv._out_format == 'pdbqt':
+			watvinaPars['out'] = wv._ligand + '_out.pdbqt'
+
+	wv.precalculate(full_atom_type=True)
+
+	if(watvinaPars['score_only'] and watvinaPars['local_only']) or (watvinaPars['score_only'] and watvinaPars['relax_only']) or ((watvinaPars['local_only'] and watvinaPars['relax_only'])) : 
+		print('Error: choose score_only, or local_only, or relax_only')
+		exit()
+	elif (watvinaPars['score_only']):
+		wv.score()
+		exit()
+	elif (watvinaPars['local_only']):
+		wv.optimize(watvinaPars['local_steps'], watvinaPars['tramplitude'])
+	elif (watvinaPars['relax_only']):
+		wv.relax(watvinaPars['local_steps'], watvinaPars['tramplitude'], watvinaPars['rotamplitude'])
+	
+	else:
+		wv.compute_watvina_map()
+	
+		wv.dock(exhaustiveness=watvinaPars['exhaustiveness'],
+	 			n_poses=watvinaPars['num_modes'],
+				min_rmsd=watvinaPars['rmsd'],
+				energy_range=watvinaPars['energy_range'],
+				population_size=watvinaPars['population'],
+				ga_searching=watvinaPars['ga_search'])
+	
+	#output pdbqt file
+	if wv._out_format == 'pdbqt':
+		wv.write_pdbqt_poses(watvinaPars['out'], len(wv._watvina.poses_coords))
+		
+	#output sdf file
+	else:
+		ligand_mol = wv._RDligand
+		conf = ligand_mol.GetConformer(0)
+
+		writer = Chem.SDWriter(watvinaPars['out'])
+		for pose_id in range(len(wv._watvina.poses_coords)):
+			for atomid,coord in zip(wv._watvina.pose_atomids,wv._watvina.poses_coords[pose_id]):
+				conf.SetAtomPosition(atomid,(coord[0],coord[1],coord[2]))
+			
+			ligand_mol.AddConformer(conf,assignId=True)
+			conf_id   = pose_id + 1
+			conf_w = ligand_mol.GetConformer(conf_id)
+			conf_score='%.2f' % wv._watvina.poses_score[pose_id]
+			#for local only
+			if pose_id < len(wv._watvina.poses_vdw):
+				conf_vdw='%.2f' % wv._watvina.poses_vdw[pose_id]
+				conf_hbond='%.2f' % wv._watvina.poses_hbond[pose_id]
+				conf_electrop='%.2f' % wv._watvina.poses_electrop[pose_id]
+			else:
+				conf_vdw = '0.0'
+				conf_hbond = '0.0'
+				conf_electrop = '0.0'
+
+			ligand_mol.SetProp('ConfID', f'{conf_id}')
+			ligand_mol.SetProp("Score",conf_score)
+			ligand_mol.SetProp("VDW",conf_vdw)
+			ligand_mol.SetProp("Hbond",conf_hbond)
+			ligand_mol.SetProp("Electrop",conf_electrop)
+
+			conf_w.SetProp('ConfID', f'{conf_id}')
+			conf_w.SetProp("Score",conf_score)
+			conf_w.SetProp("VDW",conf_vdw)
+			conf_w.SetProp("Hbond",conf_hbond)
+			conf_w.SetProp("Electrop",conf_electrop)    
+			writer.write(ligand_mol,confId=conf_id)
+
+
+
+
+
