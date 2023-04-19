@@ -6,7 +6,7 @@
 
 `unzip pywatvina.zip`
 
-2. **decompress the static library of pywatvina**
+2. **Decompress the static library of pywatvina**
 
 `cd watvina`
 
@@ -14,7 +14,7 @@
 
 some `.o` format files are released in this step
 
-3. **Recompile the files to a share library file which could be imported by python，python**
+3. **Recompile the files to a share library file which could be imported by python**
 
 **With your own environment under the specific version of python and boost **
 
@@ -22,10 +22,10 @@ some `.o` format files are released in this step
 
 A  `_watvina_wrapper.so` dynamic library file.
 
-4. **remove the .a .o files** 
+4. **Remove the .a .o files** 
 
 `$rm *.a *.o`
 
-5. **copy the`watvina`folder to your python lib path**
+5. **Copy the`watvina`folder to your python lib path**
 
 like `${your_python_envs_lib/python3.x/dist-pakcages/}`
