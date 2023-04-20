@@ -6,7 +6,7 @@ For drug design purpose, explicit or implicit waters, pharmacophore or position 
 ### 1.1 Receptor and ligand(s) should be carefully prepared. KEEP ALL THE NON-POLAR AND POLAR HYDROGENS. 
 ### 1.2 Minimize/Optimize the ligand carefully. Watvina calculates some torsion penalty.
 ### 1.3 Hydroxy hydrogens which do not formed intra hydrogen bond in the receptor are suggested to be flexible. Another method is to change the OA and HD atom types to OW and HW respectively.
-### 1.4 Powershell is not recommended for ```rdkit2pdbqt.py```
+### 1.4 The ```pywatvina``` surpports ```pdb``` and ```pdbqt``` formats for receptor, ```sdf``` and ```pdbqt``` for ligand
 
 
 ## 2 USAGE
