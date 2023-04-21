@@ -645,7 +645,7 @@ if __name__ == "__main__":
                     at_idx = problem.GetAtomIdx()
                     atom = mol.GetAtomWithIdx(at_idx)
                     chg = atom.GetFormalCharge()
-                    print(f'Atom N {at_idx} with formal charge {chg}')
+                    print(f'REMARK    N {at_idx} with formal charge {chg}')
                     atom.SetFormalCharge(1)
                     atom.UpdatePropertyCache()
                 else:
