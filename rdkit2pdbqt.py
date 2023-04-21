@@ -637,24 +637,10 @@ if __name__ == "__main__":
         exit()
 
     elif sys.argv[1] == '-l':
-        mol=Chem.MolFromMolFile(sys.argv[2],removeHs=False, sanitize=False)
-        mol_problems = Chem.DetectChemistryProblems(mol)
-        if len(mol_problems) > 0:
-            for problem in mol_problems:
-                if "N, 4" in problem.Message():
-                    at_idx = problem.GetAtomIdx()
-                    atom = mol.GetAtomWithIdx(at_idx)
-                    chg = atom.GetFormalCharge()
-                    print(f'REMARK  N {at_idx} with formal charge {chg}')
-                    atom.SetFormalCharge(1)
-                    atom.UpdatePropertyCache()
-                else:
-                    print(problem.Message())
-                    exit()
-        Chem.SanitizeMol(mol)
+        mol=Chem.MolFromMolFile(sys.argv[2],removeHs=False)
         pdbqtlines=MolToPDBQTBlock(mol, True, False, True)
         print(pdbqtlines)
-        exit()
+        exit
 
     else:
         HelpAndExit()
