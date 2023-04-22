@@ -21,7 +21,7 @@ def N4_is_right(mol):
 				at_idx = problem.GetAtomIdx()
 				atom = mol.GetAtomWithIdx(at_idx)
 				chg = atom.GetFormalCharge()
-				print(f'Atom N {at_idx} with formal charge {chg}')
+				print(f'REMARK    N {at_idx} with formal charge {chg}')
 				atom.SetFormalCharge(1)
 				atom.UpdatePropertyCache()
 			else:
@@ -140,7 +140,7 @@ class WATVina:
 
 
 def show_version():
-    print("pyWATVina version: Beta2023.04.15")
+    print("pyWATVina version: Beta2023.04.22")
 
 
 class ShareArgs():

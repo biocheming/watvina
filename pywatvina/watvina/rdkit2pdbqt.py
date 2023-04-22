@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 '''
-© Copyright 2015, Maciej Wojcikowski Revision caf5d84a.
+Copyright 2015, Maciej Wojcikowski Revision caf5d84a.
 Wojcikowski, M., Zielenkiewicz, P. & Siedlecki, P. 
 Open Drug Discovery Toolkit (ODDT): a new open-source player in the drug discovery field. 
-J Cheminform 7, 26 (2015). 
-https://doi.org/10.1186/s13321-015-0078-2
+J Cheminform 7, 26 (2015). https://doi.org/10.1186/s13321-015-0078-2
 
 Modified by XU Ximing
 xuximing@ouc.edu.cn
-2022.12.10
+2023.04.22
 '''
 from __future__ import absolute_import, print_function
 from math import isnan, isinf
@@ -648,7 +647,7 @@ if __name__ == "__main__":
                     at_idx = problem.GetAtomIdx()
                     atom = mol.GetAtomWithIdx(at_idx)
                     chg = atom.GetFormalCharge()
-                    print(f'Atom N {at_idx} with formal charge {chg}')
+                    print(f'REMARK    N {at_idx} with formal charge {chg}')
                     atom.SetFormalCharge(1)
                     atom.UpdatePropertyCache()
                 else:
