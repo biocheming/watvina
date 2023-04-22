@@ -74,8 +74,9 @@ class WATVina:
 
 	def set_extra_weights(self,weight_desol=-0.500, wclash_dist=0.500, weight_torsion=0.300):
 		self._watvina.set_extra_constraints(weight_desol,wclash_dist,weight_torsion)
-
-	def set_water(self,water_name,implicitsol=False):
+		
+	# TO BE FIXED  FOR WATER MODEL
+	def set_water(self,water_name,implicitsol=False): 
 		self._watvina.set_water(water_name,implicitsol)
 
 	def set_pharma(self,pharma_name):
