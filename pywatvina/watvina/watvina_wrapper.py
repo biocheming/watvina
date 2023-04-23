@@ -1646,8 +1646,8 @@ class WATVina(object):
     def set_receptor_from_string(self, *args) -> "void":
         return _watvina_wrapper.WATVina_set_receptor_from_string(self, *args)
 
-    def set_water(self, water_file: "std::string const &", implicitsol: "bool"=False) -> "void":
-        return _watvina_wrapper.WATVina_set_water(self, water_file, implicitsol)
+    def set_water(self, implicitsol: "bool const", water_file: "std::string const &") -> "void":
+        return _watvina_wrapper.WATVina_set_water(self, implicitsol, water_file)
 
     def set_ligand_from_file(self, ligand_name: "std::string const &") -> "void":
         return _watvina_wrapper.WATVina_set_ligand_from_file(self, ligand_name)
