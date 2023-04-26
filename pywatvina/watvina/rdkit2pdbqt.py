@@ -460,20 +460,29 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
                                       '!$(C(Br)(Br)Br)&'
                                       '!$(C([CH3])([CH3])[CH3])]')
         '''
+        
         #rot_bond = Chem.MolFromSmarts('[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]') # From Chemaxon
         rot_bond  = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]') #single and not ring, really not in ring?
-        amide_bonds = Chem.MolFromSmarts('[NX3]-[CX3]=[O,N]') # includes amidines
+        
+        exclude_list = ['[NX3]-[CX3]=[O,N]'] 
+                        #'[!#1]-[C;H3,Cl3,F3,Br3]']
+        excluded_atoms = []
+        for excluded_smarts in exclude_list:
+            excluded_bond = Chem.MolFromSmarts(excluded_smarts)
+            excluded_atoms += [(x[0],x[1]) for x in list(mol.GetSubstructMatches(excluded_bond))]
+
         tertiary_amide_bonds = Chem.MolFromSmarts('[NX3]([!#1])([!#1])-[CX3]=[O,N]')
+
         bond_atoms = list(mol.GetSubstructMatches(rot_bond))
-        amide_bond_atoms = [(x[0],x[1]) for x in list(mol.GetSubstructMatches(amide_bonds))]
+
         tertiary_amide_bond_atoms=[(x[0],x[3]) for x in list(mol.GetSubstructMatches(tertiary_amide_bonds))]
-        for amide_bond_atom in amide_bond_atoms:
+        for excld_atom in excluded_atoms:
             #bond_atoms.remove(amide_bond_atom)
-            amide_bond_atom_reverse=(amide_bond_atom[1],amide_bond_atom[0])
-            if amide_bond_atom in bond_atoms:
-                bond_atoms.remove(amide_bond_atom)
-            elif amide_bond_atom_reverse in bond_atoms:
-                bond_atoms.remove(amide_bond_atom_reverse)
+            excld_atom_reverse=(excld_atom[1],excld_atom[0])
+            if excld_atom in bond_atoms:
+                bond_atoms.remove(excld_atom)
+            elif excld_atom_reverse in bond_atoms:
+                bond_atoms.remove(excld_atom_reverse)
 
         if len(tertiary_amide_bond_atoms) > 0:
             for tertiary_amide_bond_atom in tertiary_amide_bond_atoms:
