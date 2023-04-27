@@ -77,10 +77,13 @@ class WATVina:
 		self._watvina.set_extra_constraints(weight_desol,wclash_dist,weight_torsion)
         # TO BE FIXED FOR WATER MODEL
 	def set_water(self,implicitsol,water_name):
-		if os.path.exists(water_name) and implicitsol:
+		if (water_name is not None) and implicitsol:
 			raise RuntimeError(f'Error: select implicitsol mode or using extra water file')
-		elif (implicitsol is False) and (not os.path.exists(water_name)):
+		elif (implicitsol is False) and (water_name is None):
 			raise RuntimeError(f'Error: select implicitsol mode or using extra water file')
+		elif implicitsol and (water_name is None):
+			water_name='Water_file_is_None'
+			self._watvina.set_water(implicitsol,water_name)
 		else: 
 			self._watvina.set_water(implicitsol,water_name)
 			self._water = water_name
@@ -180,7 +183,7 @@ def mol_output(mol, wv, sdfwrite):
 		sdfwrite.write(mol,confId=conf_id)
 
 def show_version():
-    print("pyWATVina version: v2023.04.26")
+    print("pyWATVina version: v2023.04.23")
 
 
 class ShareArgs():
@@ -381,6 +384,7 @@ if __name__ == '__main__':
 	wv.set_box(box_center,box_size,watvinaPars['grid_space'])
         
 	wv.precalculate(full_atom_type=True)
+	
 	if (watvinaPars['water'] is not None) or (watvinaPars['implicitsol']):
 		wv.set_water(watvinaPars['implicitsol'], watvinaPars['water'])
 	if watvinaPars['pharma'] is not None:
