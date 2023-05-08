@@ -180,7 +180,7 @@ class WATVina:
 	def compute_watvina_map(self):
 		self._watvina.compute_watvina_maps()
 
-	def dock(self,exhaustiveness=10,n_poses=20,min_rmsd=1.5,energy_range=3,population_size=8,ga_searching=4,refinement=True,tramplitude=1.00):
+	def dock(self,exhaustiveness=8,n_poses=3,min_rmsd=1.5,energy_range=3,population_size=6,ga_searching=4,refinement=True,tramplitude=1.00):
 		self._watvina.global_search(exhaustiveness,n_poses,min_rmsd,energy_range,population_size,ga_searching,refinement,tramplitude)
 	
 	def score(self):
@@ -267,10 +267,10 @@ class ShareArgs():
 
 		#global search and GA
 		"energy_range"   : 3.0,
-		"exhaustiveness" : 10, 
-		"population_size": 8,
+		"exhaustiveness" : 8, 
+		"population_size": 6,
 		"ga_searching  " : 4,
-		"num_modes "     : 20,
+		"num_modes "     : 3,
 		"rmsd"           : 1.5,	
 
 		#weight
@@ -354,10 +354,10 @@ def parse_args():
 	parser.add_argument("--cpu",  type=int,  default=os.cpu_count(), action=UniqueStore,  help='CPU Core number to be used [ >0 ]')
 	parser.add_argument("--seed",  type=int, default=0, action=UniqueStore,  help='Random seed [ 0 ]')
 	parser.add_argument("--verbosity",  type=int, default=1, action=UniqueStore,  help='Verbosity [ 1 ]')
-	parser.add_argument("--exhaustiveness",  type=int, default=10, action=UniqueStore, help='Task number for searching [ 10 ]')
-	parser.add_argument("--population",  type=int, default=8,action=UniqueStore,  help='Population size for GA [ 8 ]')
+	parser.add_argument("--exhaustiveness",  type=int, default=8, action=UniqueStore, help='Task number for searching [ 10 ]')
+	parser.add_argument("--population",  type=int, default=6,action=UniqueStore,  help='Population size for GA [ 8 ]')
 	parser.add_argument("--ga_search",   type=int, default=4, action=UniqueStore, help='Amplitude of interation for GA [ 4 ]')
-	parser.add_argument("--num_modes",   type=int, default=20,action=UniqueStore,  help='Pose number to be generated at most [ 20 ]')
+	parser.add_argument("--num_modes",   type=int, default=3,action=UniqueStore,  help='Pose number to be generated at most [ 20 ]')
 	parser.add_argument("--rmsd",        type=float, default=1.500,action=UniqueStore,  help='RMSD for pose clustering [ 1.50 ]')
 	parser.add_argument("--energy_range",type=float, default=3.00, action=UniqueStore,  help='Energy range for output [ 3.0 ]')
 	
