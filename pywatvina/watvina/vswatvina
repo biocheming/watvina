@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 #  -*- coding: UTF-8 -*-
 #  By Ximing XU, xuximing@ouc.edu.cn
-# pywatvina based on the Autodock vina 1.2 
+# vswatvina based on the Autodock vina 1.2 
 import argparse, configparser
 import time
 import sys
@@ -29,6 +29,51 @@ def N4_is_right(mol):
 				exit()
 	Chem.SanitizeMol(mol)
 	return mol
+
+#mols input
+def ligands_in_pdbqt(inputfile):
+	pdbqts={}
+	molid=0
+	pdbqtline=''
+	with open(inputfile,'r') as pdbqt_file:
+		pdbqt_file_lines = pdbqt_file.readlines()
+		pdbqt_file_firstline=pdbqt_file_lines[0]
+		pdbqt_file_lastline = pdbqt_file_lines[-1]
+		if pdbqt_file_firstline[0:5] != 'MODEL':
+			for line in pdbqt_file_lines:
+				if line==pdbqt_file_firstline:
+					pdbqtline = "REMARK  MOLID: " + str(molid) + '\n'
+				pdbqtline +=line;
+				if line == pdbqt_file_lastline:
+					pdbqts[molid]=pdbqtline
+					pdbqtline = ''
+		else:
+			for line in pdbqt_file_lines:
+				if line[0:5] == "MODEL":
+					pdbqtline="REMARK  MOLID: " + str(molid) + '\n'
+				elif line[0:6] != 'ENDMDL':
+					pdbqtline += line
+				elif (line[0:6] == 'ENDMDL'):
+					pdbqts[molid]=pdbqtline
+					molid +=1
+					pdbqtline=''
+	return pdbqts
+
+def ligands_in_rdmol(rdmols):
+	pdbqts={}
+	for molid, mol in enumerate(rdmols):
+		try:
+			N4_is_right(mol)
+			Chem.SanitizeMol(mol)
+			ligand_pdbqt = "REMARK  MOLID: " + str(molid) + "\n"
+			ligand_pdbqt +=  MolToPDBQTBlock(mol, True, False, True)
+			pdbqts[molid] = ligand_pdbqt
+		except Exception as inst:
+			print(f"ligand {molid} with Error: {inst}")
+			pass
+	
+	return pdbqts
+
 #setup watvina docking object
 class WATVina:
 	def __init__(self,cpu=1,seed=0,verbosity=1):
@@ -78,9 +123,9 @@ class WATVina:
         # TO BE FIXED FOR WATER MODEL
 	def set_water(self,implicitsol,water_name):
 		if (water_name is not None) and implicitsol:
-			raise RuntimeError(f'Error: select implicitsol mode or using extra water file')
+			raise RuntimeError(f'Select implicitsol mode or using extra water file')
 		elif (implicitsol is False) and (water_name is None):
-			raise RuntimeError(f'Error: select implicitsol mode or using extra water file')
+			raise RuntimeError(f'Select implicitsol mode or using extra water file')
 		elif implicitsol and (water_name is None):
 			water_name='Water_file_is_None'
 			self._watvina.set_water(implicitsol,water_name)
@@ -93,27 +138,27 @@ class WATVina:
 
 	def set_ligand(self, ligand_name):
 		if ligand_name is None:
-			raise ValueError('Error: No ligand file was specified.')
+			raise ValueError('No ligand file was specified.')
 		
 		if not os.path.exists(ligand_name):
-			raise RuntimeError(f'Error: file {ligand_name} does not exist.')
+			raise RuntimeError(f'File {ligand_name} does not exist.')
 		else:
 			basename,extenstion = os.path.splitext(ligand_name)
 			if extenstion == '.pdbqt':
-				self._watvina.set_ligand_from_file(ligand_name)
+				#self._watvina.set_ligand_from_file(ligand_name)
 				self._out_format = 'pdbqt'
 				self._ligand = basename
 			elif (extenstion == '.sdf') or (extenstion == '.mol'):
-				ligand_mol=Chem.MolFromMolFile(ligand_name,removeHs=False, sanitize=False)
-				ligand_mol=N4_is_right(ligand_mol)
-				ligand_lines=MolToPDBQTBlock(ligand_mol, True, False, True)
-				self._watvina.set_ligand_from_string(ligand_lines)
+				#ligand_mol=Chem.MolFromMolFile(ligand_name,removeHs=False, sanitize=False)
+				#ligand_mol=N4_is_right(ligand_mol)
+				#ligand_lines=MolToPDBQTBlock(ligand_mol, True, False, True)
+				#self._watvina.set_ligand_from_string(ligand_lines)
 				self._out_format = 'sdf'
-				self._RDligand   = ligand_mol
+				#self._RDligand   = ligand_mol
 				self._ligand = basename
-				self._watvina.pose_atomids=[x-1 for x in self._watvina.pose_atomids]
+				#self._watvina.pose_atomids=[x-1 for x in self._watvina.pose_atomids]
 			else:
-				raise TypeError('Error: set_ligand function needs PDBQT or sdf [mol] file for ligand.')
+				raise TypeError('set_ligand function needs PDBQT or sdf [mol] file for ligand.')
 	
 	def set_ligand_from_string(self, pdbqtlines):
 		self._watvina.set_ligand_from_string(pdbqtlines)
@@ -151,54 +196,10 @@ class WATVina:
 		self._watvina.relax_structure(relax_steps, tramplitude, rotamplitude)
 		
 
-
-#mols input
-def ligands_in_pdbqt(inputfile):
-	pdbqts=[]
-	molid=0
-	pdbqtline=''
-	with open(inputfile,'r') as pdbqt_file:
-		pdbqt_file_lines = pdbqt_file.readlines()
-		pdbqt_file_firstline=pdbqt_file_lines[0]
-		pdbqt_file_lastline = pdbqt_file_lines[-1]
-		if pdbqt_file_firstline[0:5] != 'MODEL':
-			for line in pdbqt_file_lines:
-				if line==pdbqt_file_firstline:
-					pdbqtline = "REMARK  MOLID: " + str(molid) + '\n'
-				pdbqtline +=line;
-				if line == pdbqt_file_lastline:
-					pdbqts.append(pdbqtline)
-					pdbqtline = ''
-		else:
-			for line in pdbqt_file_lines:
-				if line[0:5] == "MODEL":
-					pdbqtline="REMARK  MOLID: " + str(molid) + '\n'
-				elif line[0:6] != 'ENDMDL':
-					pdbqtline += line
-				elif (line[0:6] == 'ENDMDL'):
-					pdbqts.append(pdbqtline)
-					molid +=1
-					pdbqtline=''
-	return pdbqts
-
-def ligands_in_rdmol(rdmols):
-	pdbqts=[]
-	for molid, mol in enumerate(rdmols):
-		try:
-			N4_is_right(mol)
-			Chem.SanitizeMol(mol)
-			ligand_pdbqt = "REMARK  MOLID: " + str(molid) + "\n"
-			ligand_pdbqt +=  MolToPDBQTBlock(mol, True, False, True)
-			pdbqts.append(ligand_pdbqt)
-		except Exception as inst:
-			print(f"ligand {molid} with Error: {inst}")
-			pass
-	
-	return pdbqts
-
 #write out the docked mol
-def mol_output(mol, wv, sdfwrite):
+def mol_output(mol, wv, sdfwrite, molid=0):
 	conf = mol.GetConformer(0)
+	wv._watvina.pose_atomids=[x-1 for x in wv._watvina.pose_atomids]
 	for pose_id in range(len(wv._watvina.poses_coords)):
 		for atomid,coord in zip(wv._watvina.pose_atomids,wv._watvina.poses_coords[pose_id]):
 			conf.SetAtomPosition(atomid,(coord[0],coord[1],coord[2]))
@@ -217,12 +218,14 @@ def mol_output(mol, wv, sdfwrite):
 			conf_hbond = '0.0'
 			conf_electrop = '0.0'
 
+		mol.SetProp('MolID', f'{molid}')
 		mol.SetProp('ConfID', f'{conf_id}')
 		mol.SetProp("Score",conf_score)
 		mol.SetProp("VDW",conf_vdw)
 		mol.SetProp("Hbond",conf_hbond)
 		mol.SetProp("Electrop",conf_electrop)
-
+		
+		conf_w.SetProp('MolID', f'{molid}')
 		conf_w.SetProp('ConfID', f'{conf_id}')
 		conf_w.SetProp("Score",conf_score)
 		conf_w.SetProp("VDW",conf_vdw)
@@ -231,7 +234,7 @@ def mol_output(mol, wv, sdfwrite):
 		sdfwrite.write(mol,confId=conf_id)
 
 def show_version():
-    print("pyWATVina version: v2023.04.23")
+    print("pyWATVina version: v2023.05.08")
 
 
 class ShareArgs():
@@ -276,10 +279,10 @@ class ShareArgs():
 		"weight_electrop" :  0.140,
 
 		#local_search or score only
-		"score_only"   : False,
-		"local_only"   : False,
-		"relax_only"   : False,
-		"local_steps"  : 2000,
+		#"score_only"   : False,
+		#"local_only"   : False,
+		#"relax_only"   : False,
+		#"local_steps"  : 2000,
 		"tramplitude"  : 1.00,
 		"rotamplitude" : 1.00,
 		
@@ -343,13 +346,14 @@ def parse_args():
 	parser.add_argument("-o", "--out", type=str, required=False, action=UniqueStore,   help='Output ligand conformation [ .sdf]')
 	parser.add_argument("--log", type=str, required=False, action=UniqueStore,   help='Log information [ NOT WORKING ! ]')
 	#[LOCAL]
-	parser.add_argument('--score_only', action='store_true',     help='Score only mode')
-	parser.add_argument('--local_only', action='store_true',     help='Local optimization by BFGS only mode')
-	parser.add_argument('--randomize_only', action='store_true',     help='Random Search only mode [not working in current version]')
+	#parser.add_argument('--score_only', action='store_true',     help='Score only mode')
+	#parser.add_argument('--local_only', action='store_true',     help='Local optimization by BFGS only mode')
+	#parser.add_argument('--randomize_only', action='store_true',     help='Random Search only mode [not working in current version]')
 
 	#[GLOBAL]
 	parser.add_argument("--cpu",  type=int,  default=os.cpu_count(), action=UniqueStore,  help='CPU Core number to be used [ >0 ]')
 	parser.add_argument("--seed",  type=int, default=0, action=UniqueStore,  help='Random seed [ 0 ]')
+	parser.add_argument("--verbosity",  type=int, default=1, action=UniqueStore,  help='Verbosity [ 1 ]')
 	parser.add_argument("--exhaustiveness",  type=int, default=10, action=UniqueStore, help='Task number for searching [ 10 ]')
 	parser.add_argument("--population",  type=int, default=8,action=UniqueStore,  help='Population size for GA [ 8 ]')
 	parser.add_argument("--ga_search",   type=int, default=4, action=UniqueStore, help='Amplitude of interation for GA [ 4 ]')
@@ -358,8 +362,8 @@ def parse_args():
 	parser.add_argument("--energy_range",type=float, default=3.00, action=UniqueStore,  help='Energy range for output [ 3.0 ]')
 	
 	#[RELAX]
-	parser.add_argument('--relax_only',  action='store_true',   help='Just do local search')
-	parser.add_argument("--local_steps",  type=int,  default=500, action=UniqueStore, help='Local search steps')
+	#parser.add_argument('--relax_only',  action='store_true',   help='Just do local search')
+	#parser.add_argument("--local_steps",  type=int,  default=500, action=UniqueStore, help='Local search steps')
 	parser.add_argument("--tramplitude", type=float, default=1.00, action=UniqueStore,  help='Amplitude for ROOT part translation or rotation [1.0]')
 	parser.add_argument("--rotamplitude", type=float, default=1.00, action=UniqueStore,  help='Torsion searching space  [-x*pi, x*pi]')
 	
@@ -382,8 +386,10 @@ def typing_arg(argkey, argvalue):
 				"energy_range" , "rmsd" , 
 				"weight_vdw" , "weight_hbond" , "weight_electrop" ,  
 				"tramplitude" , "rotamplitude"]
-	barglist = ["implicitsol", "score_only", "local_only", "relax_only"]
-	iarglist = ["cpu", "seed" , "verbosity" , "exhaustiveness" , "population_size" , "ga_searching  " , "num_modes ", "local_steps"]
+	#barglist = ["implicitsol", "score_only", "local_only", "relax_only"]
+	barglist = ["implicitsol"]
+	#iarglist = ["cpu", "seed" , "verbosity" , "exhaustiveness" , "population_size" , "ga_searching  " , "num_modes ", "local_steps"]
+	iarglist = ["cpu", "seed" , "verbosity" , "exhaustiveness" , "population_size" , "ga_searching  " , "num_modes "]
 
 	if argkey in barglist:
 		argvalue = bool(argvalue)
@@ -414,14 +420,18 @@ if __name__ == '__main__':
 	if args2vars['config'] is not None:
 		config_contents=read_config_file(input_args.config)
 		ShareArgs.update(config_contents)
-	watvinaPars=ShareArgs.args	
+	watvinaPars=ShareArgs.args
 	#print('==WATVina Task Parameters==')
-        #print(watvinaPars)
 
 	#setup watvina task
 	wv = WATVina(watvinaPars['cpu'], watvinaPars['seed'], watvinaPars['verbosity'])
 	#wv = WATVina(1,0,1)
-	wv.set_receptor(watvinaPars['receptor'])
+	if watvinaPars['receptor'] == None:
+		raise RuntimeError(f'Error: the receptor file is None.')
+	elif not os.path.exists(watvinaPars['receptor']):
+		raise RuntimeError(f'Error: the receptor file does not exist.')
+	else:
+		wv.set_receptor(watvinaPars['receptor'])
 
 	wv.set_weights(watvinaPars['weight_vdw'],watvinaPars['weight_hbond'],watvinaPars['weight_electrop'])
 	wv.set_extra_weights(watvinaPars['weight_desol'],watvinaPars['wclash_dist'],watvinaPars['weight_torsion'])
@@ -436,50 +446,43 @@ if __name__ == '__main__':
 		wv.set_water(watvinaPars['implicitsol'], watvinaPars['water'])
 	if watvinaPars['pharma'] is not None:
 		wv.set_pharma(watvinaPars['pharma'])
-
-	wv.set_ligand(watvinaPars['ligand'])
 	
-	outputfile = watvinaPars['out']
-	if outputfile is None:
+    # set ligand for format
+	wv.set_ligand(watvinaPars['ligand'])	
+	if watvinaPars['out'] is None:
 		if wv._out_format == "sdf":
-			outputfile = wv._ligand + '_out.sdf'
+			watvinaPars['out'] = wv._ligand + '_out.sdf'
 		elif wv._out_format == 'pdbqt':
-			outputfile = wv._ligand + '_out.pdbqt'
+			watvinaPars['out'] = wv._ligand + '_out.pdbqt'
 
+	#very important
+	if os.path.exists(watvinaPars['out']):
+		raise RuntimeError(f'The output file exists. Please delete it before docking...')
 
-	if(watvinaPars['score_only'] and watvinaPars['local_only']) or (watvinaPars['score_only'] and watvinaPars['relax_only']) or ((watvinaPars['local_only'] and watvinaPars['relax_only'])) : 
-		print('Error: choose score_only, or local_only, or relax_only')
-		exit()
-	elif (watvinaPars['score_only']):
-		wv.score()
-		exit()
-	elif (watvinaPars['local_only']):
-		if os.path.exists(outputfile):
-			raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
-		wv.optimize(watvinaPars['local_steps'], watvinaPars['tramplitude'])
-	elif (watvinaPars['relax_only']):
-		if os.path.exists(outputfile):
-			raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
-		wv.relax(watvinaPars['local_steps'], watvinaPars['tramplitude'], watvinaPars['rotamplitude'])
-	
-	else:
-		if os.path.exists(outputfile):
-			raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
-		wv.compute_watvina_map()
-		wv.dock(exhaustiveness=watvinaPars['exhaustiveness'],
-	 			n_poses=watvinaPars['num_modes'],
-				min_rmsd=watvinaPars['rmsd'],
-				energy_range=watvinaPars['energy_range'],
-				population_size=watvinaPars['population'],
-				ga_searching=watvinaPars['ga_search'],
-				refinement=True, tramplitude=watvinaPars['tramplitude'])
-	
-	#output pdbqt file
+    #creat pdbqt blocks
+	pdbqts={}
 	if wv._out_format == 'pdbqt':
-		wv.write_pdbqt_poses(outputfile, len(wv._watvina.poses_coords))
+		pdbqts = ligands_in_pdbqt(watvinaPars['ligand'])
+	elif wv._out_format == 'sdf':
+		ligandMols = Chem.SDMolSupplier(watvinaPars['ligand'], removeHs=False)
+		ligandswriter = Chem.SDWriter(watvinaPars['out'])
+		pdbqts = ligands_in_rdmol(ligandMols)
 	
-	#output sdf file
-	else:
-		ligand_mol = wv._RDligand
-		sdfwriter = Chem.SDWriter(outputfile)
-		mol_output(ligand_mol, wv, sdfwriter)
+    # compute engergy grid for full atom types 
+	wv.compute_watvina_map()
+	
+    # loop the docking and writing
+	for molid in pdbqts:
+		wv.set_ligand_from_string(pdbqts[molid])
+		wv.dock(exhaustiveness=watvinaPars['exhaustiveness'],
+	 		n_poses=watvinaPars['num_modes'],
+			min_rmsd=watvinaPars['rmsd'],
+			energy_range=watvinaPars['energy_range'],
+			population_size=watvinaPars['population'],
+			ga_searching=watvinaPars['ga_search'],
+			refinement=True, tramplitude=watvinaPars['tramplitude'])
+		if wv._out_format == 'pdbqt':
+			wv.write_pdbqt_poses(watvinaPars['out'], len(wv._watvina.poses_coords))
+		elif wv._out_format == 'sdf':
+			mol=ligandMols[molid]
+			mol_output(mol, wv, ligandswriter, molid)
