@@ -1661,10 +1661,10 @@ class WATVina(object):
     def set_extra_constraints(self, weight_desol: "float"=-0.500, wclash_dist: "float"=0.500, weight_torsion: "float"=0.300) -> "void":
         return _watvina_wrapper.WATVina_set_extra_constraints(self, weight_desol, wclash_dist, weight_torsion)
 
-    def set_watvina_weights(self, weight_vdw: "float"=0.19, weight_hb: "float"=0.80, weight_elep: "float"=0.14) -> "void":
+    def set_watvina_weights(self, weight_vdw: "float"=0.18, weight_hb: "float"=0.75, weight_elep: "float"=0.13) -> "void":
         return _watvina_wrapper.WATVina_set_watvina_weights(self, weight_vdw, weight_hb, weight_elep)
 
-    def set_grid_dims(self, center_x: "float", center_y: "float", center_z: "float", size_x: "float", size_y: "float", size_z: "float", granularity: "float"=0.375, force_even_voxels: "bool"=False) -> "void":
+    def set_grid_dims(self, center_x: "float", center_y: "float", center_z: "float", size_x: "float", size_y: "float", size_z: "float", granularity: "float"=0.35, force_even_voxels: "bool"=False) -> "void":
         return _watvina_wrapper.WATVina_set_grid_dims(self, center_x, center_y, center_z, size_x, size_y, size_z, granularity, force_even_voxels)
 
     def set_precalculate_sf(self, prec_full_atomtypes: "bool"=False) -> "void":
