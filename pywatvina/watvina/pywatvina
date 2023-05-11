@@ -231,7 +231,7 @@ def mol_output(mol, wv, sdfwrite):
 		sdfwrite.write(mol,confId=conf_id)
 
 def show_version():
-    print("pyWATVina version: v2023.04.23")
+    print("pyWATVina version: v2023.05.11")
 
 
 class ShareArgs():
@@ -254,7 +254,7 @@ class ShareArgs():
 		"weight_torsion" : 0.300,
 
 		#grid
-		"grid_space" : 0.350,
+		"grid_space" : 0.3750,
 		"center_x"   : None,
 		"center_y"   : None, 
 		"center_z"   : None,
@@ -364,9 +364,9 @@ def parse_args():
 	parser.add_argument("--rotamplitude", type=float, default=1.00, action=UniqueStore,  help='Torsion searching space  [-x*pi, x*pi]')
 	
 	#[WEIGHTS]
-	parser.add_argument("--weight_vdw",type=float, default= 0.18,action=UniqueStore,   help='VDW weight [ 0.19 ]')
-	parser.add_argument("--weight_hbond",type=float, default= 0.75, action=UniqueStore,  help='Hydrogen bond weight [ 0.80 ]')
-	parser.add_argument("--weight_electrop",type=float, default= 0.13, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.14 ]')
+	parser.add_argument("--weight_vdw",type=float, default= 0.18,action=UniqueStore,   help='VDW weight [ 0.18 ]')
+	parser.add_argument("--weight_hbond",type=float, default= 0.75, action=UniqueStore,  help='Hydrogen bond weight [ 0.75 ]')
+	parser.add_argument("--weight_electrop",type=float, default= 0.13, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.13 ]')
 
 	#[INFORMATION]
 	#parser.add_argument("-h", "--help", type=bool, required=False,    help='Help information')
@@ -415,8 +415,7 @@ if __name__ == '__main__':
 		config_contents=read_config_file(input_args.config)
 		ShareArgs.update(config_contents)
 	watvinaPars=ShareArgs.args	
-	#print('==WATVina Task Parameters==')
-        #print(watvinaPars)
+
 
 	#setup watvina task
 	wv = WATVina(watvinaPars['cpu'], watvinaPars['seed'], watvinaPars['verbosity'])
@@ -446,6 +445,8 @@ if __name__ == '__main__':
 		elif wv._out_format == 'pdbqt':
 			outputfile = wv._ligand + '_out.pdbqt'
 
+	#print('==WATVina Task Parameters==')
+	#print(watvinaPars)
 
 	if(watvinaPars['score_only'] and watvinaPars['local_only']) or (watvinaPars['score_only'] and watvinaPars['relax_only']) or ((watvinaPars['local_only'] and watvinaPars['relax_only'])) : 
 		print('Error: choose score_only, or local_only, or relax_only')
