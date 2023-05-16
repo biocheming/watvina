@@ -234,7 +234,7 @@ def mol_output(mol, wv, sdfwrite, molid=0):
 		sdfwrite.write(mol,confId=conf_id)
 
 def show_version():
-    print("pyWATVina version: v2023.05.11")
+    print("pyWATVina version: v2023.05.16")
 
 
 class ShareArgs():
@@ -279,7 +279,7 @@ class ShareArgs():
 		"weight_electrop" :  0.130,
 
 		#local_search or score only
-		#"score_only"   : False,
+		"score_only"   : False,
 		#"local_only"   : False,
 		#"relax_only"   : False,
 		#"local_steps"  : 2000,
@@ -346,7 +346,7 @@ def parse_args():
 	parser.add_argument("-o", "--out", type=str, required=False, action=UniqueStore,   help='Output ligand conformation [ .sdf]')
 	parser.add_argument("--log", type=str, required=False, action=UniqueStore,   help='Log information [ NOT WORKING ! ]')
 	#[LOCAL]
-	#parser.add_argument('--score_only', action='store_true',     help='Score only mode')
+	parser.add_argument('--score_only', action='store_true',     help='Score only mode')
 	#parser.add_argument('--local_only', action='store_true',     help='Local optimization by BFGS only mode')
 	#parser.add_argument('--randomize_only', action='store_true',     help='Random Search only mode [not working in current version]')
 
@@ -387,7 +387,7 @@ def typing_arg(argkey, argvalue):
 				"weight_vdw" , "weight_hbond" , "weight_electrop" ,  
 				"tramplitude" , "rotamplitude"]
 	#barglist = ["implicitsol", "score_only", "local_only", "relax_only"]
-	barglist = ["implicitsol"]
+	barglist = ["implicitsol","score_only"]
 	#iarglist = ["cpu", "seed" , "verbosity" , "exhaustiveness" , "population_size" , "ga_searching  " , "num_modes ", "local_steps"]
 	iarglist = ["cpu", "seed" , "verbosity" , "exhaustiveness" , "population_size" , "ga_searching  " , "num_modes "]
 
@@ -465,24 +465,32 @@ if __name__ == '__main__':
 		pdbqts = ligands_in_pdbqt(watvinaPars['ligand'])
 	elif wv._out_format == 'sdf':
 		ligandMols = Chem.SDMolSupplier(watvinaPars['ligand'], removeHs=False)
-		ligandswriter = Chem.SDWriter(watvinaPars['out'])
+		if not watvinaPars['score_only']:
+			ligandswriter = Chem.SDWriter(watvinaPars['out'])
 		pdbqts = ligands_in_rdmol(ligandMols)
 	
-    # compute engergy grid for full atom types 
-	wv.compute_watvina_map()
+    # compute engergy grid for full atom types
+	if not watvinaPars['score_only']: 
+		wv.compute_watvina_map()
 	
     # loop the docking and writing
 	for molid in pdbqts:
 		wv.set_ligand_from_string(pdbqts[molid])
-		wv.dock(exhaustiveness=watvinaPars['exhaustiveness'],
-	 		n_poses=watvinaPars['num_modes'],
-			min_rmsd=watvinaPars['rmsd'],
-			energy_range=watvinaPars['energy_range'],
-			population_size=watvinaPars['population'],
-			ga_searching=watvinaPars['ga_search'],
-			refinement=True, tramplitude=watvinaPars['tramplitude'])
-		if wv._out_format == 'pdbqt':
-			wv.write_pdbqt_poses(watvinaPars['out'], len(wv._watvina.poses_coords))
-		elif wv._out_format == 'sdf':
-			mol=ligandMols[molid]
-			mol_output(mol, wv, ligandswriter, molid)
+		if not watvinaPars['score_only']:
+			wv.dock(exhaustiveness=watvinaPars['exhaustiveness'],
+	 			n_poses=watvinaPars['num_modes'],
+				min_rmsd=watvinaPars['rmsd'],
+				energy_range=watvinaPars['energy_range'],
+				population_size=watvinaPars['population'],
+				ga_searching=watvinaPars['ga_search'],
+				refinement=True, tramplitude=watvinaPars['tramplitude'])
+		
+			if wv._out_format == 'pdbqt':
+				wv.write_pdbqt_poses(watvinaPars['out'], len(wv._watvina.poses_coords))
+			elif wv._out_format == 'sdf':
+				mol=ligandMols[molid]
+				mol_output(mol, wv, ligandswriter, molid)
+		elif watvinaPars['score_only']:
+			inter_score=wv.score()
+			molname = ligandMols[molid].GetProp("_Name")
+			print(f"{molid} : {molname} : {inter_score}")

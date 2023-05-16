@@ -636,16 +636,18 @@ if __name__ == "__main__":
         HelpAndExit()
 
     if sys.argv[1] == '-r':
-        receptor_mol=Chem.MolFromPDBFile(sys.argv[2], removeHs=False)
-        #AllChem.AssignBondOrdersFromTemplate(receptor_mol,receptor_mol)
-        # detect aromaticity
-        #AllChem.AssignAtomChiralTagsFromStructure(receptor_mol)
-        #AllChem.AssignBondOrdersFromTemplate(Chem.MolFromSmarts('[a]'), receptor_mol)
-        #Chem.AssignStereochemistry(receptor_mol)
+        try:
+            receptor_mol=Chem.MolFromPDBFile(sys.argv[2], removeHs=False)
+            #AllChem.AssignBondOrdersFromTemplate(receptor_mol,receptor_mol)
+            # detect aromaticity
+            #AllChem.AssignAtomChiralTagsFromStructure(receptor_mol)
+            #AllChem.AssignBondOrdersFromTemplate(Chem.MolFromSmarts('[a]'), receptor_mol)
+            #Chem.AssignStereochemistry(receptor_mol)
 
-        receptor_lines=MolToPDBQTBlock(receptor_mol, False, False, True)
-        print(receptor_lines)
-        exit()
+            receptor_lines=MolToPDBQTBlock(receptor_mol, False, False, True)
+            print(receptor_lines)
+        except:
+            raise TypeError('Protein is not readable by rdkit.')
 
     elif sys.argv[1] == '-l':
         mol=Chem.MolFromMolFile(sys.argv[2],removeHs=False, sanitize=False)
