@@ -231,7 +231,7 @@ def mol_output(mol, wv, sdfwrite):
 		sdfwrite.write(mol,confId=conf_id)
 
 def show_version():
-    print("pyWATVina version: v2023.05.16")
+    print("pyWATVina version: v2023.05.21")
 
 
 class ShareArgs():
@@ -456,16 +456,19 @@ if __name__ == '__main__':
 		exit()
 	elif (watvinaPars['local_only']):
 		if os.path.exists(outputfile):
-			raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
+			os.remove(outputfile)
+			#raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
 		wv.optimize(watvinaPars['local_steps'], watvinaPars['tramplitude'])
 	elif (watvinaPars['relax_only']):
 		if os.path.exists(outputfile):
-			raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
+			os.remove(outputfile)
+			#raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
 		wv.relax(watvinaPars['local_steps'], watvinaPars['tramplitude'], watvinaPars['rotamplitude'])
 	
 	else:
 		if os.path.exists(outputfile):
-			raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
+			os.remove(outputfile)
+			#raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
 		wv.compute_watvina_map()
 		wv.dock(exhaustiveness=watvinaPars['exhaustiveness'],
 	 			n_poses=watvinaPars['num_modes'],

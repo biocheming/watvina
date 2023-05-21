@@ -359,7 +359,7 @@ def PDBQTAtomLines(mol, donors, acceptors):
         atombondsnum = atom.GetDegree()
         if atomicnum == 6 and atom.GetIsAromatic():
             pdbqt_line += 'A'
-        elif atomicnum == 7 and idx in acceptors:
+        elif atomicnum == 7 and ((idx in acceptors) or (atomhybridization == Chem.HybridizationType.SP3 and atombondsnum == 3) ):
             pdbqt_line += 'NA'
         elif atomicnum == 8 and idx in acceptors:
             pdbqt_line += 'OA'
@@ -464,7 +464,7 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
         #rot_bond = Chem.MolFromSmarts('[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]') # From Chemaxon
         rot_bond  = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]') #single and not ring, really not in ring?
         
-        exclude_list = ['[NX3]-[CX3]=[O,N]']
+        exclude_list = ['[NX3]-[CX3]=[O,N]','C(=[O;!R])N']
         #, '[!#1]-[C;H3,Cl3,F3,Br3]']
         excluded_atoms = []
         for excluded_smarts in exclude_list:
