@@ -234,7 +234,7 @@ def mol_output(mol, wv, sdfwrite, molid=0):
 		sdfwrite.write(mol,confId=conf_id)
 
 def show_version():
-    print("pyWATVina version: v2023.05.21")
+    print("pyWATVina version: v2023.05.22")
 
 
 class ShareArgs():
@@ -274,9 +274,9 @@ class ShareArgs():
 		"rmsd"           : 1.5,	
 
 		#weight
-		"weight_vdw"      :  0.180,
+		"weight_vdw"      :  0.184,
 		"weight_hbond"    :  0.750,
-		"weight_electrop" :  0.130,
+		"weight_electrop" :  0.150,
 
 		#local_search or score only
 		"score_only"   : False,
@@ -368,9 +368,9 @@ def parse_args():
 	parser.add_argument("--rotamplitude", type=float, default=1.00, action=UniqueStore,  help='Torsion searching space  [-x*pi, x*pi]')
 	
 	#[WEIGHTS]
-	parser.add_argument("--weight_vdw",type=float, default= 0.18,action=UniqueStore,   help='VDW weight [ 0.19 ]')
+	parser.add_argument("--weight_vdw",type=float, default= 0.184,action=UniqueStore,   help='VDW weight [ 0.19 ]')
 	parser.add_argument("--weight_hbond",type=float, default= 0.75, action=UniqueStore,  help='Hydrogen bond weight [ 0.80 ]')
-	parser.add_argument("--weight_electrop",type=float, default= 0.13, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.14 ]')
+	parser.add_argument("--weight_electrop",type=float, default= 0.15, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.14 ]')
 
 	#[INFORMATION]
 	#parser.add_argument("-h", "--help", type=bool, required=False,    help='Help information')
