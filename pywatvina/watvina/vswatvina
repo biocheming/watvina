@@ -78,7 +78,7 @@ def ligands_in_rdmol(rdmols):
 class WATVina:
 	def __init__(self,cpu=1,seed=0,verbosity=1):
 		self._watvina = _WATVina(cpu,seed,verbosity)
-		self._weights = (0.190,0.800,0.140)
+		self._weights = (0.184,0.750,0.150)
 		self._extra_constraints= (-0.500, 0.500, 0.300)
 		self._receptor     = None
 		self._flex         = None
@@ -115,7 +115,7 @@ class WATVina:
 			if flex_name is not None:
 				raise TypeError('Error: Flex_residue is not surpported currently')
 
-	def set_weights(self,weight_vdw=0.19,weight_hb=0.80,weight_elep=0.14):
+	def set_weights(self,weight_vdw=0.84,weight_hb=0.750,weight_elep=0.150):
 		self._watvina.set_watvina_weights(weight_vdw,weight_hb,weight_elep)
 
 	def set_extra_weights(self,weight_desol=-0.500, wclash_dist=0.500, weight_torsion=0.300):
