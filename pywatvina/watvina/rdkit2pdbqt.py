@@ -358,7 +358,7 @@ def PDBQTAtomLines(mol, donors, acceptors):
         atomhybridization = atom.GetHybridization()
         atombondsnum = atom.GetDegree()
         if atomicnum == 6 and atom.GetIsAromatic():
-            pdbqt_line += 'A'
+            pdbqt_line += 'A '
         elif atomicnum == 7 and ((idx in acceptors) or (atomhybridization == Chem.HybridizationType.SP3 and atombondsnum == 3) ):
             pdbqt_line += 'NA'
         elif atomicnum == 8 and idx in acceptors:
