@@ -370,7 +370,10 @@ def PDBQTAtomLines(mol, donors, acceptors):
         elif atomicnum == 16 and ( (atomhybridization == Chem.HybridizationType.SP3 and atombondsnum != 4) or atomhybridization == Chem.HybridizationType.SP2 ):
             pdbqt_line += 'SA'
         else:
-            pdbqt_line += atom.GetSymbol()
+            if len(atom.GetSymbol()) >1:
+                pdbqt_line += atom.GetSymbol()    
+            else:
+                pdbqt_line += (atom.GetSymbol() + ' ') 
         pdbqt_lines.append(pdbqt_line)
     return pdbqt_lines
 
