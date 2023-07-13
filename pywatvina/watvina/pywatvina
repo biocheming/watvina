@@ -42,7 +42,7 @@ class WATVina:
 		self._RDligand     = None
 		self._box_center   = None
 		self._box_size     = None
-		self._spacing      = 0.375
+		self._spacing      = 0.35
 		self._out_format   = None
 	
 	def cite(self):
@@ -70,7 +70,7 @@ class WATVina:
 			if flex_name is not None:
 				raise TypeError('Error: Flex_residue is not surpported currently')
 
-	def set_weights(self,weight_vdw=0.184,weight_hb=0.750,weight_elep=0.150):
+	def set_weights(self,weight_vdw=0.184,weight_hb=0.75,weight_elep=0.15):
 		self._watvina.set_watvina_weights(weight_vdw,weight_hb,weight_elep)
 
 	def set_extra_weights(self,weight_desol=-0.500, wclash_dist=0.500, weight_torsion=0.300):
@@ -135,7 +135,7 @@ class WATVina:
 	def compute_watvina_map(self):
 		self._watvina.compute_watvina_maps()
 
-	def dock(self,exhaustiveness=10,n_poses=20,min_rmsd=1.5,energy_range=3,population_size=8,ga_searching=4,refinement=True,tramplitude=1.00):
+	def dock(self,exhaustiveness=8,n_poses=20,min_rmsd=1.5,energy_range=3,population_size=8,ga_searching=4,refinement=True,tramplitude=1.00):
 		self._watvina.global_search(exhaustiveness,n_poses,min_rmsd,energy_range,population_size,ga_searching,refinement,tramplitude)
 	
 	def score(self):
@@ -147,7 +147,7 @@ class WATVina:
 	def optimize(self, max_steps=100, tramplitude=1.00):
 		return self._watvina.optimize(max_steps,tramplitude)
 	
-	def relax(self, relax_steps=500, tramplitude=1.00, rotamplitude=1.00):
+	def relax(self, relax_steps=2000, tramplitude=1.00, rotamplitude=1.00):
 		self._watvina.relax_structure(relax_steps, tramplitude, rotamplitude)
 		
 
@@ -231,7 +231,7 @@ def mol_output(mol, wv, sdfwrite):
 		sdfwrite.write(mol,confId=conf_id)
 
 def show_version():
-    print("pyWATVina version: v2023.05.22")
+    print("pyWATVina version: v2023.07.13")
 
 
 class ShareArgs():
@@ -254,7 +254,7 @@ class ShareArgs():
 		"weight_torsion" : 0.300,
 
 		#grid
-		"grid_space" : 0.3750,
+		"grid_space" : 0.350,
 		"center_x"   : None,
 		"center_y"   : None, 
 		"center_z"   : None,
@@ -264,7 +264,7 @@ class ShareArgs():
 
 		#global search and GA
 		"energy_range"   : 3.0,
-		"exhaustiveness" : 10, 
+		"exhaustiveness" : 8, 
 		"population_size": 8,
 		"ga_searching  " : 4,
 		"num_modes "     : 20,
@@ -331,7 +331,7 @@ def parse_args():
 
 	
 	#[GRID]
-	parser.add_argument("--grid_space",  type=float, default=0.37500,action=UniqueStore,  help='Grid space for map [ 0.3750 ]')
+	parser.add_argument("--grid_space",  type=float, default=0.3500,action=UniqueStore,  help='Grid space for map [ 0.350 ]')
 	parser.add_argument("--center_x",  type=float,action=UniqueStore,  help='Grid Center X')
 	parser.add_argument("--center_y",  type=float,action=UniqueStore,  help='Grid Center Y')
 	parser.add_argument("--center_z",  type=float,action=UniqueStore,  help='Grid Center Z')
@@ -350,7 +350,7 @@ def parse_args():
 	#[GLOBAL]
 	parser.add_argument("--cpu",  type=int,  default=os.cpu_count(), action=UniqueStore,  help='CPU Core number to be used [ >0 ]')
 	parser.add_argument("--seed",  type=int, default=0, action=UniqueStore,  help='Random seed [ 0 ]')
-	parser.add_argument("--exhaustiveness",  type=int, default=10, action=UniqueStore, help='Task number for searching [ 10 ]')
+	parser.add_argument("--exhaustiveness",  type=int, default=8, action=UniqueStore, help='Task number for searching [ 8 ]')
 	parser.add_argument("--population",  type=int, default=8,action=UniqueStore,  help='Population size for GA [ 8 ]')
 	parser.add_argument("--ga_search",   type=int, default=4, action=UniqueStore, help='Amplitude of interation for GA [ 4 ]')
 	parser.add_argument("--num_modes",   type=int, default=20,action=UniqueStore,  help='Pose number to be generated at most [ 20 ]')
@@ -364,9 +364,9 @@ def parse_args():
 	parser.add_argument("--rotamplitude", type=float, default=1.00, action=UniqueStore,  help='Torsion searching space  [-x*pi, x*pi]')
 	
 	#[WEIGHTS]
-	parser.add_argument("--weight_vdw",type=float, default= 0.184,action=UniqueStore,   help='VDW weight [ 0.18 ]')
+	parser.add_argument("--weight_vdw",type=float, default= 0.184,action=UniqueStore,   help='VDW weight [ 0.184 ]')
 	parser.add_argument("--weight_hbond",type=float, default= 0.75, action=UniqueStore,  help='Hydrogen bond weight [ 0.75 ]')
-	parser.add_argument("--weight_electrop",type=float, default= 0.15, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.13 ]')
+	parser.add_argument("--weight_electrop",type=float, default= 0.15, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.15 ]')
 
 	#[INFORMATION]
 	#parser.add_argument("-h", "--help", type=bool, required=False,    help='Help information')
