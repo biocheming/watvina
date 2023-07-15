@@ -42,7 +42,7 @@ class WATVina:
 		self._RDligand     = None
 		self._box_center   = None
 		self._box_size     = None
-		self._spacing      = 0.35
+		self._spacing      = 0.375
 		self._out_format   = None
 	
 	def cite(self):
@@ -135,7 +135,7 @@ class WATVina:
 	def compute_watvina_map(self):
 		self._watvina.compute_watvina_maps()
 
-	def dock(self,exhaustiveness=8,n_poses=20,min_rmsd=1.5,energy_range=3,population_size=8,ga_searching=4,refinement=True,tramplitude=1.00):
+	def dock(self,exhaustiveness=8,n_poses=10,min_rmsd=1.5,energy_range=3,population_size=8,ga_searching=4,refinement=True,tramplitude=1.00):
 		self._watvina.global_search(exhaustiveness,n_poses,min_rmsd,energy_range,population_size,ga_searching,refinement,tramplitude)
 	
 	def score(self):
@@ -231,7 +231,7 @@ def mol_output(mol, wv, sdfwrite):
 		sdfwrite.write(mol,confId=conf_id)
 
 def show_version():
-    print("pyWATVina version: v2023.07.13")
+    print("pyWATVina version: v2023.07.15")
 
 
 class ShareArgs():
@@ -254,7 +254,7 @@ class ShareArgs():
 		"weight_torsion" : 0.300,
 
 		#grid
-		"grid_space" : 0.350,
+		"grid_space" : 0.375,
 		"center_x"   : None,
 		"center_y"   : None, 
 		"center_z"   : None,
@@ -331,7 +331,7 @@ def parse_args():
 
 	
 	#[GRID]
-	parser.add_argument("--grid_space",  type=float, default=0.3500,action=UniqueStore,  help='Grid space for map [ 0.350 ]')
+	parser.add_argument("--grid_space",  type=float, default=0.375,action=UniqueStore,  help='Grid space for map [ 0.375 ]')
 	parser.add_argument("--center_x",  type=float,action=UniqueStore,  help='Grid Center X')
 	parser.add_argument("--center_y",  type=float,action=UniqueStore,  help='Grid Center Y')
 	parser.add_argument("--center_z",  type=float,action=UniqueStore,  help='Grid Center Z')
@@ -353,7 +353,7 @@ def parse_args():
 	parser.add_argument("--exhaustiveness",  type=int, default=8, action=UniqueStore, help='Task number for searching [ 8 ]')
 	parser.add_argument("--population",  type=int, default=8,action=UniqueStore,  help='Population size for GA [ 8 ]')
 	parser.add_argument("--ga_search",   type=int, default=4, action=UniqueStore, help='Amplitude of interation for GA [ 4 ]')
-	parser.add_argument("--num_modes",   type=int, default=20,action=UniqueStore,  help='Pose number to be generated at most [ 20 ]')
+	parser.add_argument("--num_modes",   type=int, default=3,action=UniqueStore,  help='Pose number to be generated at most [ 3 ]')
 	parser.add_argument("--rmsd",        type=float, default=1.500,action=UniqueStore,  help='RMSD for pose clustering [ 1.50 ]')
 	parser.add_argument("--energy_range",type=float, default=3.00, action=UniqueStore,  help='Energy range for output [ 3.0 ]')
 	
