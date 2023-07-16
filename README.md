@@ -132,16 +132,16 @@ Advanced options (see the manual):
   --local_only                          do local search only
   --implicitsol                         implicit solvation model result in a 
                                         implicitsol.pdb
-  --grid_space arg (=0.349999994)       grid space
+  --grid_space arg (=0.375)             grid space
   --weight_vdw arg (=0.184)             vdw weight
   --weight_hbond arg (=0.75)            Hydrogen bond weight
-  --weight_electrop arg (=0.150000006)  polar repulsion or hydrophobic 
+  --weight_electrop arg (=0.15)         polar repulsion or hydrophobic 
                                         attraction
   --weight_desol arg (=-0.5)            desolvation weight[depends on water 
                                         model used]
   --wclash_dist arg (=0.5)              clash distance with water[depends on 
                                         water model used]
-  --weight_torsion arg (=0.300000012)   external torsion weight[depends on 
+  --weight_torsion arg (=0.3)           external torsion weight[depends on 
                                         forcefield or unit in kj/mol or 
                                         kcal/mol]
   --relax_only                          do relax only without BFGS refinement 
