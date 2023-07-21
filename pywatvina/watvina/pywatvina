@@ -231,7 +231,7 @@ def mol_output(mol, wv, sdfwrite):
 		sdfwrite.write(mol,confId=conf_id)
 
 def show_version():
-    print("pyWATVina version: v2023.07.20")
+    print("pyWATVina version: v2023.07.21")
 
 
 class ShareArgs():
