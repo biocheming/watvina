@@ -234,7 +234,7 @@ def mol_output(mol, wv, sdfwrite, molid=0):
 		sdfwrite.write(mol,confId=conf_id)
 
 def show_version():
-    print("pyWATVina version: v2023.07.20")
+    print("pyWATVina version: v2023.07.30")
 
 
 class ShareArgs():
@@ -257,7 +257,7 @@ class ShareArgs():
 		"weight_torsion" : 0.300,
 
 		#grid
-		"grid_space" : 0.350,
+		"grid_space" : 0.375,
 		"center_x"   : None,
 		"center_y"   : None, 
 		"center_z"   : None,
