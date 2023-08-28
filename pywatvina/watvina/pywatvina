@@ -427,7 +427,7 @@ if __name__ == '__main__':
 
 	box_center=(watvinaPars['center_x'],watvinaPars['center_y'],watvinaPars['center_z'])
 	box_size=(watvinaPars['size_x'],watvinaPars['size_y'],watvinaPars['size_z'])
-	wv.set_box(box_center,box_size,watvinaPars['grid_space'])
+	#wv.set_box(box_center,box_size,watvinaPars['grid_space'])
 
 	wv.precalculate(full_atom_type=True)
 	
@@ -458,17 +458,20 @@ if __name__ == '__main__':
 		if os.path.exists(outputfile):
 			os.remove(outputfile)
 			#raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
+		wv.set_box(box_center,box_size,watvinaPars['grid_space'])
 		wv.optimize(watvinaPars['local_steps'], watvinaPars['tramplitude'])
 	elif (watvinaPars['relax_only']):
 		if os.path.exists(outputfile):
 			os.remove(outputfile)
 			#raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
+		wv.set_box(box_center,box_size,watvinaPars['grid_space'])
 		wv.relax(watvinaPars['local_steps'], watvinaPars['tramplitude'], watvinaPars['rotamplitude'])
 	
 	else:
 		if os.path.exists(outputfile):
 			os.remove(outputfile)
 			#raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
+		wv.set_box(box_center,box_size,watvinaPars['grid_space'])
 		wv.compute_watvina_map()
 		wv.dock(exhaustiveness=watvinaPars['exhaustiveness'],
 	 			n_poses=watvinaPars['num_modes'],
