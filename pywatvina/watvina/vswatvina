@@ -492,5 +492,8 @@ if __name__ == '__main__':
 				mol_output(mol, wv, ligandswriter, molid)
 		elif watvinaPars['score_only']:
 			inter_score=wv.score()
-			molname = ligandMols[molid].GetProp("_Name")
-			print(f"{molid} : {molname} : {inter_score}")
+			if wv._out_format == 'pdbqt':
+				molname = molid
+			elif wv._out_format == 'sdf':
+				molname = ligandMols[molid].GetProp("_Name")
+			print(f"SCORE_ONLY: {molid} : {molname} : {inter_score}")
