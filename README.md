@@ -1,6 +1,6 @@
 # Water Model supported protein-ligand docking with Autodock Vina engine. 
 
-![Watvina](https://github.com/biocheming/watvina/blob/main/watvina2.png)
+![Watvina](https://github.com/biocheming/watvina/blob/main/watvina_logo.png)
 
 For drug design purpose, explicit or implicit waters, pharmacophore or position constrained docking, external torsion parameter (in amber/gaff/charmm force field like parameters) are supported in watvina. 
 
