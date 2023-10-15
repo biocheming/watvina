@@ -136,7 +136,7 @@ Advanced options (see the manual):
                                         implicitsol.pdb
   --grid_space arg (=0.375)             grid space
   --weight_vdw arg (=0.184)             vdw weight
-  --weight_hbond arg (=0.75)            Hydrogen bond weight
+  --weight_hbond arg (=1.00)            Hydrogen bond weight
   --weight_electrop arg (=0.15)         polar repulsion or hydrophobic 
                                         attraction
   --weight_desol arg (=-0.5)            desolvation weight[depends on water 
