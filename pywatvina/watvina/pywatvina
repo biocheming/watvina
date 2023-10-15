@@ -6,12 +6,16 @@ import argparse, configparser
 import time
 import sys
 import os
+boost_lib = '/opt/boost/boost-linux64/lib'
+if not boost_lib in os.environ['LD_LIBRARY_PATH']:
+    os.environ['LD_LIBRARY_PATH'] += ':'+boost_lib
 
 import glob
 import stat
 
 from watvina.watvina_wrapper import WATVina as _WATVina
 from watvina.rdkit2pdbqt import *
+
 #something happened when N4 is coming
 def N4_is_right(mol):
 	mol_problems = Chem.DetectChemistryProblems(mol)
@@ -33,7 +37,7 @@ def N4_is_right(mol):
 class WATVina:
 	def __init__(self,cpu=1,seed=0,verbosity=1):
 		self._watvina = _WATVina(cpu,seed,verbosity)
-		self._weights = (0.184,0.750,0.150)
+		self._weights = (0.184,1.000,0.150)
 		self._extra_constraints= (-0.500, 0.500, 0.300)
 		self._receptor     = None
 		self._flex         = None
@@ -70,7 +74,7 @@ class WATVina:
 			if flex_name is not None:
 				raise TypeError('Error: Flex_residue is not surpported currently')
 
-	def set_weights(self,weight_vdw=0.184,weight_hb=0.75,weight_elep=0.15):
+	def set_weights(self,weight_vdw=0.184,weight_hb=1.00,weight_elep=0.15):
 		self._watvina.set_watvina_weights(weight_vdw,weight_hb,weight_elep)
 
 	def set_extra_weights(self,weight_desol=-0.500, wclash_dist=0.500, weight_torsion=0.300):
@@ -231,7 +235,7 @@ def mol_output(mol, wv, sdfwrite):
 		sdfwrite.write(mol,confId=conf_id)
 
 def show_version():
-    print("pyWATVina version: v2023.07.30")
+    print("pyWATVina version: v2023.07.20")
 
 
 class ShareArgs():
@@ -255,12 +259,12 @@ class ShareArgs():
 
 		#grid
 		"grid_space" : 0.375,
-		"center_x"   : None,
-		"center_y"   : None, 
-		"center_z"   : None,
-		"size_x"     : None, 
-		"size_y"     : None,
-		"size_z"     : None,
+		"center_x"   : 0.,
+		"center_y"   : 0., 
+		"center_z"   : 0.,
+		"size_x"     : 20.0, 
+		"size_y"     : 20.0,
+		"size_z"     : 20.0,
 
 		#global search and GA
 		"energy_range"   : 3.0,
@@ -272,7 +276,7 @@ class ShareArgs():
 
 		#weight
 		"weight_vdw"      :  0.184,
-		"weight_hbond"    :  0.750,
+		"weight_hbond"    :  1.000,
 		"weight_electrop" :  0.150,
 
 		#local_search or score only
