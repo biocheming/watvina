@@ -233,8 +233,8 @@ def mol_output(mol, wv, sdfwrite, molid=0):
 		conf_w.SetProp("Electrop",conf_electrop)    
 		sdfwrite.write(mol,confId=conf_id)
 
-def show_version():
-    print("pyWATVina version: v2023.10.16")
+def version():
+    self._watvina.version()
 
 
 class ShareArgs():

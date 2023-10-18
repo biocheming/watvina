@@ -1637,6 +1637,9 @@ class WATVina(object):
     def cite(self) -> "void":
         return _watvina_wrapper.WATVina_cite(self)
 
+    def version(self) -> "void":
+        return _watvina_wrapper.WATVina_version(self)
+
     def seed(self) -> "int":
         return _watvina_wrapper.WATVina_seed(self)
 
