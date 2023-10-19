@@ -6,9 +6,9 @@ import argparse, configparser
 import time
 import sys
 import os
-boost_lib = '/opt/boost/boost-linux64/lib'
-if not boost_lib in os.environ['LD_LIBRARY_PATH']:
-    os.environ['LD_LIBRARY_PATH'] += ':'+boost_lib
+#boost_lib = '/opt/boost/boost-linux64/lib'
+#if not boost_lib in os.environ['LD_LIBRARY_PATH']:
+#    os.environ['LD_LIBRARY_PATH'] += ':'+boost_lib
 
 import glob
 import stat
