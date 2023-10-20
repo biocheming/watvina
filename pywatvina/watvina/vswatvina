@@ -198,25 +198,22 @@ class WATVina:
 
 #write out the docked mol
 def mol_output(mol, wv, sdfwrite, molid=0):
-	conf = mol.GetConformer(0)
+	#conf = mol.GetConformer(0)
 	wv._watvina.pose_atomids=[x-1 for x in wv._watvina.pose_atomids]
+	conf = Chem.Conformer(mol.GetNumAtoms())
+	for confid in range(mol.GetNumConformers()):
+		if confid > 0:
+			mol.RemoveConformer(confid)
+
 	for pose_id in range(len(wv._watvina.poses_coords)):
 		for atomid,coord in zip(wv._watvina.pose_atomids,wv._watvina.poses_coords[pose_id]):
-			conf.SetAtomPosition(atomid,(coord[0],coord[1],coord[2]))
+			conf.SetAtomPosition(atomid,coord)
 		
-		mol.AddConformer(conf,assignId=True)
 		conf_id   = pose_id + 1
-		conf_w = mol.GetConformer(conf_id)
 		conf_score='%.2f' % wv._watvina.poses_score[pose_id]
-		#for local only
-		if pose_id < len(wv._watvina.poses_vdw):
-			conf_vdw='%.2f' % wv._watvina.poses_vdw[pose_id]
-			conf_hbond='%.2f' % wv._watvina.poses_hbond[pose_id]
-			conf_electrop='%.2f' % wv._watvina.poses_electrop[pose_id]
-		else:
-			conf_vdw = '0.0'
-			conf_hbond = '0.0'
-			conf_electrop = '0.0'
+		conf_vdw='%.2f' % wv._watvina.poses_vdw[pose_id]
+		conf_hbond='%.2f' % wv._watvina.poses_hbond[pose_id]
+		conf_electrop='%.2f' % wv._watvina.poses_electrop[pose_id]
 
 		mol.SetProp('MolID', f'{molid}')
 		mol.SetProp('ConfID', f'{conf_id}')
@@ -230,7 +227,8 @@ def mol_output(mol, wv, sdfwrite, molid=0):
 		conf_w.SetProp("Score",conf_score)
 		conf_w.SetProp("VDW",conf_vdw)
 		conf_w.SetProp("Hbond",conf_hbond)
-		conf_w.SetProp("Electrop",conf_electrop)    
+		conf_w.SetProp("Electrop",conf_electrop) 
+		mol.AddConformer(conf,assignId=True)   
 		sdfwrite.write(mol,confId=conf_id)
 
 def version():
