@@ -274,7 +274,7 @@ class ShareArgs():
 		#weight
 		"weight_vdw"      :  0.184,
 		"weight_hbond"    :  1.000,
-		"weight_electrop" :  0.150,
+		"weight_electrop" :  0.400,
 
 		#local_search or score only
 		"score_only"   : False,
@@ -367,8 +367,8 @@ def parse_args():
 	
 	#[WEIGHTS]
 	parser.add_argument("--weight_vdw",type=float, default= 0.184,action=UniqueStore,   help='VDW weight [ 0.184 ]')
-	parser.add_argument("--weight_hbond",type=float, default= 1.00, action=UniqueStore,  help='Hydrogen bond weight [ 1.00 ]')
-	parser.add_argument("--weight_electrop",type=float, default= 0.15, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.15 ]')
+	parser.add_argument("--weight_hbond",type=float, default= 1.000, action=UniqueStore,  help='Hydrogen bond weight [ 1.000 ]')
+	parser.add_argument("--weight_electrop",type=float, default= 0.400, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.400 ]')
 
 	#[INFORMATION]
 	#parser.add_argument("-h", "--help", type=bool, required=False,    help='Help information')
