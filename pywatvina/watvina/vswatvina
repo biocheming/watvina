@@ -78,7 +78,7 @@ def ligands_in_rdmol(rdmols):
 class WATVina:
 	def __init__(self,cpu=1,seed=0,verbosity=1):
 		self._watvina = _WATVina(cpu,seed,verbosity)
-		self._weights = (0.184,1.000,0.150)
+		self._weights = (0.184,1.000,0.250)
 		self._extra_constraints= (-0.500, 0.500, 0.300)
 		self._receptor     = None
 		self._flex         = None
@@ -115,7 +115,7 @@ class WATVina:
 			if flex_name is not None:
 				raise TypeError('Error: Flex_residue is not surpported currently')
 
-	def set_weights(self,weight_vdw=0.84,weight_hb=1.00,weight_elep=0.15):
+	def set_weights(self,weight_vdw=0.84,weight_hb=1.00,weight_elep=0.25):
 		self._watvina.set_watvina_weights(weight_vdw,weight_hb,weight_elep)
 
 	def set_extra_weights(self,weight_desol=-0.500, wclash_dist=0.500, weight_torsion=0.300):
@@ -274,7 +274,7 @@ class ShareArgs():
 		#weight
 		"weight_vdw"      :  0.184,
 		"weight_hbond"    :  1.000,
-		"weight_electrop" :  0.400,
+		"weight_electrop" :  0.250,
 
 		#local_search or score only
 		"score_only"   : False,
@@ -368,7 +368,7 @@ def parse_args():
 	#[WEIGHTS]
 	parser.add_argument("--weight_vdw",type=float, default= 0.184,action=UniqueStore,   help='VDW weight [ 0.184 ]')
 	parser.add_argument("--weight_hbond",type=float, default= 1.000, action=UniqueStore,  help='Hydrogen bond weight [ 1.000 ]')
-	parser.add_argument("--weight_electrop",type=float, default= 0.400, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.400 ]')
+	parser.add_argument("--weight_electrop",type=float, default= 0.250, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.250 ]')
 
 	#[INFORMATION]
 	#parser.add_argument("-h", "--help", type=bool, required=False,    help='Help information')

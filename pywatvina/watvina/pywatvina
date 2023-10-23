@@ -6,9 +6,9 @@ import argparse, configparser
 import time
 import sys
 import os
-boost_lib = '/opt/boost/boost-linux64/lib'
-if not boost_lib in os.environ['LD_LIBRARY_PATH']:
-    os.environ['LD_LIBRARY_PATH'] += ':'+boost_lib
+#boost_lib = '/opt/boost/boost-linux64/lib'
+#if not boost_lib in os.environ['LD_LIBRARY_PATH']:
+#    os.environ['LD_LIBRARY_PATH'] += ':'+boost_lib
 
 import glob
 import stat
@@ -37,7 +37,7 @@ def N4_is_right(mol):
 class WATVina:
 	def __init__(self,cpu=1,seed=0,verbosity=1):
 		self._watvina = _WATVina(cpu,seed,verbosity)
-		self._weights = (0.184,1.000,0.400)
+		self._weights = (0.184,1.000,0.250)
 		self._extra_constraints= (-0.500, 0.500, 0.300)
 		self._receptor     = None
 		self._flex         = None
@@ -276,7 +276,7 @@ class ShareArgs():
 		#weight
 		"weight_vdw"      :  0.184,
 		"weight_hbond"    :  1.000,
-		"weight_electrop" :  0.400,
+		"weight_electrop" :  0.250,
 
 		#local_search or score only
 		"score_only"   : False,
@@ -369,7 +369,7 @@ def parse_args():
 	#[WEIGHTS]
 	parser.add_argument("--weight_vdw",type=float, default= 0.184,action=UniqueStore,   help='VDW weight [ 0.184 ]')
 	parser.add_argument("--weight_hbond",type=float, default= 1.00, action=UniqueStore,  help='Hydrogen bond weight [ 1.00 ]')
-	parser.add_argument("--weight_electrop",type=float, default= 0.400, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.400 ]')
+	parser.add_argument("--weight_electrop",type=float, default= 0.250, action=UniqueStore,  help='Pesudo electrostatic interaction weight [ 0.250 ]')
 
 	#[INFORMATION]
 	#parser.add_argument("-h", "--help", type=bool, required=False,    help='Help information')
