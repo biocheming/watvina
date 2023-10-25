@@ -36,7 +36,6 @@ watvina --config vina.conf --template a_pseudo_pharmacophore_pdb_file.pdb
 ```
 the format of ```a_pseudo_pharmacophore_pdb_file.pdb```is in ```pdb```format
 
-```name x y z cut_off_distance weight```
 ```
 ATOM      1 CH   HVY P   1      -9.099 208.885 112.556  1.00  0.20           C
 ATOM      2 CA   ARO P   2      -9.099 208.885 112.556  0.70  0.36           C
