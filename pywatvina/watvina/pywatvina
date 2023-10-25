@@ -51,6 +51,8 @@ class WATVina:
 	
 	def cite(self):
 		self._watvina.cite()
+	def version(self):
+		self._watvina.version()
 
 	def set_receptor(self, rigid_name=None, flex_name=None):
 		if rigid_name is None:
@@ -94,6 +96,9 @@ class WATVina:
 
 	def set_pharma(self,pharma_name):
 		self._watvina.set_pharmacophore_from_file(pharma_name)
+	
+	def set_template(self, template_name):
+		self._watvina.set_template_ph4(template_name)
 
 	def set_ligand(self, ligand_name):
 		if ligand_name is None:
@@ -139,11 +144,18 @@ class WATVina:
 	def compute_watvina_map(self):
 		self._watvina.compute_watvina_maps()
 
-	def dock(self,exhaustiveness=8,n_poses=10,min_rmsd=1.5,energy_range=3,population_size=8,ga_searching=4,refinement=True,tramplitude=1.00):
-		self._watvina.global_search(exhaustiveness,n_poses,min_rmsd,energy_range,population_size,ga_searching,refinement,tramplitude)
+	def dock(self,exhaustiveness=8,n_poses=10,min_rmsd=1.5,energy_range=3,
+		  population_size=8,ga_searching=4,refinement=True,
+		  tramplitude=1.00,toramplitude=1.00):
+		self._watvina.global_search(exhaustiveness,n_poses,min_rmsd,energy_range,
+							  population_size,ga_searching,refinement,
+							  tramplitude,toramplitude)
 	
-	def score(self):
-		return self._watvina.score()
+	def score(self, genph4=False):
+		return self._watvina.score(genph4)
+	
+	def grid_score(self):
+		return self._watvina.grid_score()
 	
 	def write_pdbqt_poses(self, out_name, num_poses):
 		self._watvina.write_poses(out_name,num_poses)
@@ -151,8 +163,8 @@ class WATVina:
 	def optimize(self, max_steps=100, tramplitude=1.00):
 		return self._watvina.optimize(max_steps,tramplitude)
 	
-	def relax(self, relax_steps=2000, tramplitude=1.00, rotamplitude=1.00):
-		self._watvina.relax_structure(relax_steps, tramplitude, rotamplitude)
+	def relax(self, relax_steps=2000, tramplitude=1.00, toramplitude=1.00):
+		self._watvina.relax_structure(relax_steps, tramplitude, toramplitude)
 		
 
 
@@ -233,8 +245,7 @@ def mol_output(mol, wv, sdfwrite):
 		mol.AddConformer(conf,assignId=True)    
 		sdfwrite.write(mol,confId=conf_id)
 
-def version():
-    self._watvina.version()
+
 
 
 class ShareArgs():
@@ -250,6 +261,7 @@ class ShareArgs():
 		
 		#constraints
 		"pharma"    : None,
+		"template"  : None,
 		"water"     : None,
 		"implicitsol"    : False,
 		"wclash_dist"    : 0.500,
@@ -280,11 +292,12 @@ class ShareArgs():
 
 		#local_search or score only
 		"score_only"   : False,
+		"genph4"       : False,
 		"local_only"   : False,
 		"relax_only"   : False,
 		"local_steps"  : 2000,
 		"tramplitude"  : 1.00,
-		"rotamplitude" : 1.00,
+		"toramplitude" : 1.00,
 		
 		#out
 		"out"          : None
@@ -325,7 +338,8 @@ def parse_args():
 	parser.add_argument("-f", "--flex",     type=str, required=False, action=UniqueStore, help='Flexible Residue(s) [.pdbqt]')
 
 	#[CONSTRAINTS]
-	parser.add_argument("-p", "--pharma", type=str, required=False, action=UniqueStore,help='Text file for pharmacophore description')
+	parser.add_argument("-p", "--pharma", type=str, required=False, action=UniqueStore,help='PDB file for pharmacophore description')
+	parser.add_argument("-t", "--template", type=str, required=False, action=UniqueStore,help='PDB file for template pharmacophore description')
 	parser.add_argument("-w", "--water",  type=str, required=False, action=UniqueStore,help='Explicit Water Model file [.pdb]')
 	parser.add_argument('--implicitsol',  action='store_true',     help='Watvina water probe method')
 	parser.add_argument("--weight_desol",  type=float, default=-0.500,action=UniqueStore,  help='Desolvation weight [ -0.500 ]')
@@ -347,6 +361,7 @@ def parse_args():
 	parser.add_argument("--log", type=str, required=False, action=UniqueStore,   help='Log information [ NOT WORKING ! ]')
 	#[LOCAL]
 	parser.add_argument('--score_only', action='store_true',     help='Score only mode')
+	parser.add_argument('--genph4', action='store_true',     help='Generate pesudo pharmacophore model in PDB format')
 	parser.add_argument('--local_only', action='store_true',     help='Local optimization by BFGS only mode')
 	parser.add_argument('--randomize_only', action='store_true',     help='Random Search only mode [not working in current version]')
 
@@ -364,7 +379,7 @@ def parse_args():
 	parser.add_argument('--relax_only',  action='store_true',   help='Just do local search')
 	parser.add_argument("--local_steps",  type=int,  default=500, action=UniqueStore, help='Local search steps')
 	parser.add_argument("--tramplitude", type=float, default=1.00, action=UniqueStore,  help='Amplitude for ROOT part translation or rotation [1.0]')
-	parser.add_argument("--rotamplitude", type=float, default=1.00, action=UniqueStore,  help='Torsion searching space  [-x*pi, x*pi]')
+	parser.add_argument("--toramplitude", type=float, default=1.00, action=UniqueStore,  help='Torsion searching space  [-x*pi, x*pi]')
 	
 	#[WEIGHTS]
 	parser.add_argument("--weight_vdw",type=float, default= 0.184,action=UniqueStore,   help='VDW weight [ 0.184 ]')
@@ -384,8 +399,8 @@ def typing_arg(argkey, argvalue):
 	   			"center_x" , "center_y" , "center_z" , "size_x" , "size_y" , "size_z" , 
 				"energy_range" , "rmsd" , 
 				"weight_vdw" , "weight_hbond" , "weight_electrop" ,  
-				"tramplitude" , "rotamplitude"]
-	barglist = ["implicitsol", "score_only", "local_only", "relax_only"]
+				"tramplitude" , "toramplitude"]
+	barglist = ["implicitsol", "score_only", "local_only", "relax_only", "genph4"]
 	iarglist = ["cpu", "seed" , "verbosity" , "exhaustiveness" , "population_size" , "ga_searching  " , "num_modes ", "local_steps"]
 
 	if argkey in barglist:
@@ -438,6 +453,8 @@ if __name__ == '__main__':
 		wv.set_water(watvinaPars['implicitsol'], watvinaPars['water'])
 	if watvinaPars['pharma'] is not None:
 		wv.set_pharma(watvinaPars['pharma'])
+	if watvinaPars['template'] is not None:
+		wv.set_template(watvinaPars['template'])
 
 	wv.set_ligand(watvinaPars['ligand'])
 	
@@ -455,7 +472,7 @@ if __name__ == '__main__':
 		print('Error: choose score_only, or local_only, or relax_only')
 		exit()
 	elif (watvinaPars['score_only']):
-		wv.score()
+		wv.score(watvinaPars['genph4'])
 		exit()
 	elif (watvinaPars['local_only']):
 		if os.path.exists(outputfile):
@@ -468,7 +485,7 @@ if __name__ == '__main__':
 			os.remove(outputfile)
 			#raise RuntimeError(f'Error: the output file {outputfile} exists. Please delete it before docking...')
 		wv.set_box(box_center,box_size,watvinaPars['grid_space'])
-		wv.relax(watvinaPars['local_steps'], watvinaPars['tramplitude'], watvinaPars['rotamplitude'])
+		wv.relax(watvinaPars['local_steps'], watvinaPars['tramplitude'], watvinaPars['toramplitude'])
 	
 	else:
 		if os.path.exists(outputfile):
@@ -482,7 +499,9 @@ if __name__ == '__main__':
 				energy_range=watvinaPars['energy_range'],
 				population_size=watvinaPars['population'],
 				ga_searching=watvinaPars['ga_search'],
-				refinement=True, tramplitude=watvinaPars['tramplitude'])
+				refinement=True, 
+				tramplitude=watvinaPars['tramplitude'],
+				toramplitude=watvinaPars['toramplitude'])
 	
 	#output pdbqt file
 	if wv._out_format == 'pdbqt':

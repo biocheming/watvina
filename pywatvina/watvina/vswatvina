@@ -92,6 +92,8 @@ class WATVina:
 	
 	def cite(self):
 		self._watvina.cite()
+	def version(self):
+		self._watvina.version()
 
 	def set_receptor(self, rigid_name=None, flex_name=None):
 		if rigid_name is None:
@@ -135,6 +137,8 @@ class WATVina:
 
 	def set_pharma(self,pharma_name):
 		self._watvina.set_pharmacophore_from_file(pharma_name)
+	def set_template(self, template_name):
+		self._watvina.set_template_ph4(template_name)
 
 	def set_ligand(self, ligand_name):
 		if ligand_name is None:
@@ -149,14 +153,8 @@ class WATVina:
 				self._out_format = 'pdbqt'
 				self._ligand = basename
 			elif (extenstion == '.sdf') or (extenstion == '.mol'):
-				#ligand_mol=Chem.MolFromMolFile(ligand_name,removeHs=False, sanitize=False)
-				#ligand_mol=N4_is_right(ligand_mol)
-				#ligand_lines=MolToPDBQTBlock(ligand_mol, True, False, True)
-				#self._watvina.set_ligand_from_string(ligand_lines)
 				self._out_format = 'sdf'
-				#self._RDligand   = ligand_mol
 				self._ligand = basename
-				#self._watvina.pose_atomids=[x-1 for x in self._watvina.pose_atomids]
 			else:
 				raise TypeError('set_ligand function needs PDBQT or sdf [mol] file for ligand.')
 	
@@ -180,20 +178,26 @@ class WATVina:
 	def compute_watvina_map(self):
 		self._watvina.compute_watvina_maps()
 
-	def dock(self,exhaustiveness=8,n_poses=3,min_rmsd=1.5,energy_range=3,population_size=6,ga_searching=4,refinement=True,tramplitude=1.00):
-		self._watvina.global_search(exhaustiveness,n_poses,min_rmsd,energy_range,population_size,ga_searching,refinement,tramplitude)
+	def dock(self,exhaustiveness=8,n_poses=3,min_rmsd=1.5,energy_range=3,
+		  population_size=6,ga_searching=4,refinement=True,
+		  tramplitude=1.00,toramplitude=1.00):
+		self._watvina.global_search(exhaustiveness,n_poses,min_rmsd,energy_range,
+							  population_size,ga_searching,refinement,
+							  tramplitude,toramplitude)
 	
-	def score(self):
-		return self._watvina.score()
-	
+	def score(self,genph4=False):
+		return self._watvina.score(genph4)
+	def grid_score(self):
+		return self._watvina.grid_score()
+		
 	def write_pdbqt_poses(self, out_name, num_poses):
 		self._watvina.write_poses(out_name,num_poses)
 	
 	def optimize(self, max_steps=100, tramplitude=1.00):
 		return self._watvina.optimize(max_steps,tramplitude)
 	
-	def relax(self, relax_steps=2000, tramplitude=1.00, rotamplitude=1.00):
-		self._watvina.relax_structure(relax_steps, tramplitude, rotamplitude)
+	def relax(self, relax_steps=2000, tramplitude=1.00, toramplitude=1.00):
+		self._watvina.relax_structure(relax_steps, tramplitude, toramplitude)
 		
 
 #write out the docked mol
@@ -222,17 +226,14 @@ def mol_output(mol, wv, sdfwrite, molid=0):
 		mol.SetProp("Hbond",conf_hbond)
 		mol.SetProp("Electrop",conf_electrop)
 		
-		conf_w.SetProp('MolID', f'{molid}')
-		conf_w.SetProp('ConfID', f'{conf_id}')
-		conf_w.SetProp("Score",conf_score)
-		conf_w.SetProp("VDW",conf_vdw)
-		conf_w.SetProp("Hbond",conf_hbond)
-		conf_w.SetProp("Electrop",conf_electrop) 
+		conf.SetProp('MolID', f'{molid}')
+		conf.SetProp('ConfID', f'{conf_id}')
+		conf.SetProp("Score",conf_score)
+		conf.SetProp("VDW",conf_vdw)
+		conf.SetProp("Hbond",conf_hbond)
+		conf.SetProp("Electrop",conf_electrop) 
 		mol.AddConformer(conf,assignId=True)   
 		sdfwrite.write(mol,confId=conf_id)
-
-def version():
-    self._watvina.version()
 
 
 class ShareArgs():
@@ -248,6 +249,7 @@ class ShareArgs():
 		
 		#constraints
 		"pharma"    : None,
+		"template"  : None,
 		"water"     : None,
 		"implicitsol"    : False,
 		"wclash_dist"    : 0.500,
@@ -255,13 +257,13 @@ class ShareArgs():
 		"weight_torsion" : 0.300,
 
 		#grid
-		"grid_space" : 0.350,
-		"center_x"   : None,
-		"center_y"   : None, 
-		"center_z"   : None,
-		"size_x"     : None, 
-		"size_y"     : None,
-		"size_z"     : None,
+		"grid_space" : 0.375,
+		"center_x"   : 0.,
+		"center_y"   : 0., 
+		"center_z"   : 0.,
+		"size_x"     : 20., 
+		"size_y"     : 20.,
+		"size_z"     : 20.,
 
 		#global search and GA
 		"energy_range"   : 3.0,
@@ -278,11 +280,12 @@ class ShareArgs():
 
 		#local_search or score only
 		"score_only"   : False,
+		"genph4"       : False,
 		#"local_only"   : False,
 		#"relax_only"   : False,
 		#"local_steps"  : 2000,
 		"tramplitude"  : 1.00,
-		"rotamplitude" : 1.00,
+		"toramplitude" : 1.00,
 		
 		#out
 		"out"          : None
@@ -324,6 +327,7 @@ def parse_args():
 
 	#[CONSTRAINTS]
 	parser.add_argument("-p", "--pharma", type=str, required=False, action=UniqueStore,help='Text file for pharmacophore description')
+	parser.add_argument("-t", "--template", type=str, required=False, action=UniqueStore,help='PDB file for template pharmacophore description')
 	parser.add_argument("-w", "--water",  type=str, required=False, action=UniqueStore,help='Explicit Water Model file [.pdb]')
 	parser.add_argument('--implicitsol',  action='store_true',     help='Watvina water probe method')
 	parser.add_argument("--weight_desol",  type=float, default=-0.500,action=UniqueStore,  help='Desolvation weight [ -0.500 ]')
@@ -345,6 +349,7 @@ def parse_args():
 	parser.add_argument("--log", type=str, required=False, action=UniqueStore,   help='Log information [ NOT WORKING ! ]')
 	#[LOCAL]
 	parser.add_argument('--score_only', action='store_true',     help='Score only mode')
+	parser.add_argument('--genph4', action='store_true',     help='Generate pesudo pharmacophore model in PDB format')
 	#parser.add_argument('--local_only', action='store_true',     help='Local optimization by BFGS only mode')
 	#parser.add_argument('--randomize_only', action='store_true',     help='Random Search only mode [not working in current version]')
 
@@ -363,7 +368,7 @@ def parse_args():
 	#parser.add_argument('--relax_only',  action='store_true',   help='Just do local search')
 	#parser.add_argument("--local_steps",  type=int,  default=500, action=UniqueStore, help='Local search steps')
 	parser.add_argument("--tramplitude", type=float, default=1.00, action=UniqueStore,  help='Amplitude for ROOT part translation or rotation [1.0]')
-	parser.add_argument("--rotamplitude", type=float, default=1.00, action=UniqueStore,  help='Torsion searching space  [-x*pi, x*pi]')
+	parser.add_argument("--toramplitude", type=float, default=1.00, action=UniqueStore,  help='Torsion searching space  [-x*pi, x*pi]')
 	
 	#[WEIGHTS]
 	parser.add_argument("--weight_vdw",type=float, default= 0.184,action=UniqueStore,   help='VDW weight [ 0.184 ]')
@@ -383,9 +388,9 @@ def typing_arg(argkey, argvalue):
 	   			"center_x" , "center_y" , "center_z" , "size_x" , "size_y" , "size_z" , 
 				"energy_range" , "rmsd" , 
 				"weight_vdw" , "weight_hbond" , "weight_electrop" ,  
-				"tramplitude" , "rotamplitude"]
+				"tramplitude" , "toramplitude"]
 	#barglist = ["implicitsol", "score_only", "local_only", "relax_only"]
-	barglist = ["implicitsol","score_only"]
+	barglist = ["implicitsol","score_only", "genph4"]
 	#iarglist = ["cpu", "seed" , "verbosity" , "exhaustiveness" , "population_size" , "ga_searching  " , "num_modes ", "local_steps"]
 	iarglist = ["cpu", "seed" , "verbosity" , "exhaustiveness" , "population_size" , "ga_searching  " , "num_modes "]
 
@@ -444,7 +449,9 @@ if __name__ == '__main__':
 		wv.set_water(watvinaPars['implicitsol'], watvinaPars['water'])
 	if watvinaPars['pharma'] is not None:
 		wv.set_pharma(watvinaPars['pharma'])
-	
+	if watvinaPars['template'] is not None:
+		wv.set_template(watvinaPars['template'])
+
     # set ligand for format
 	wv.set_ligand(watvinaPars['ligand'])	
 	if watvinaPars['out'] is None:
@@ -481,7 +488,9 @@ if __name__ == '__main__':
 				energy_range=watvinaPars['energy_range'],
 				population_size=watvinaPars['population'],
 				ga_searching=watvinaPars['ga_search'],
-				refinement=True, tramplitude=watvinaPars['tramplitude'])
+				refinement=True, 
+				tramplitude=watvinaPars['tramplitude'],
+				toramplitude=watvinaPars['toramplitude'])
 		
 			if wv._out_format == 'pdbqt':
 				wv.write_pdbqt_poses(watvinaPars['out'], len(wv._watvina.poses_coords))
@@ -489,6 +498,6 @@ if __name__ == '__main__':
 				mol=ligandMols[molid]
 				mol_output(mol, wv, ligandswriter, molid)
 		elif watvinaPars['score_only']:
-			inter_score=wv.score()
+			inter_score=wv.score(watvinaPars['genph4'])
 			molname = ligandMols[molid].GetProp("_Name")
 			print(f"{molid} : {molname} : {inter_score}")

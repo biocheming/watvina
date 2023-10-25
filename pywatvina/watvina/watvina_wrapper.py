@@ -1661,6 +1661,9 @@ class WATVina(object):
     def set_pharmacophore_from_file(self, pharmac_name: "std::string const &") -> "void":
         return _watvina_wrapper.WATVina_set_pharmacophore_from_file(self, pharmac_name)
 
+    def set_template_ph4(self, template_ph4_pdb: "std::string const &") -> "void":
+        return _watvina_wrapper.WATVina_set_template_ph4(self, template_ph4_pdb)
+
     def set_extra_constraints(self, weight_desol: "float"=-0.500, wclash_dist: "float"=0.500, weight_torsion: "float"=0.300) -> "void":
         return _watvina_wrapper.WATVina_set_extra_constraints(self, weight_desol, wclash_dist, weight_torsion)
 
@@ -1679,17 +1682,20 @@ class WATVina(object):
     def randomize(self, out_name: "std::string const &", max_steps: "int const", seed: "int const") -> "void":
         return _watvina_wrapper.WATVina_randomize(self, out_name, max_steps, seed)
 
-    def score(self) -> "float":
-        return _watvina_wrapper.WATVina_score(self)
+    def score(self, genph4: "bool const"=False) -> "float":
+        return _watvina_wrapper.WATVina_score(self, genph4)
 
-    def relax_structure(self, relax_steps: "int const"=2000, tramplitude: "float const"=0.100, rotamplitude: "float const"=1.00) -> "void":
-        return _watvina_wrapper.WATVina_relax_structure(self, relax_steps, tramplitude, rotamplitude)
+    def grid_score(self) -> "float":
+        return _watvina_wrapper.WATVina_grid_score(self)
+
+    def relax_structure(self, relax_steps: "int const"=2000, tramplitude: "float const"=0.100, toramplitude: "float const"=1.00) -> "void":
+        return _watvina_wrapper.WATVina_relax_structure(self, relax_steps, tramplitude, toramplitude)
 
     def optimize(self, max_steps: "int const"=100, tramplitude: "float const"=1.00) -> "float":
         return _watvina_wrapper.WATVina_optimize(self, max_steps, tramplitude)
 
-    def global_search(self, exhaustiveness: "int const"=8, n_poses: "int const"=10, min_rmsd: "float const"=1.500, energy_range: "float const"=3.000, population_size: "int const"=8, ga_searching: "int const"=4, refinement: "bool const"=True, tramplitude: "float const"=1.00) -> "void":
-        return _watvina_wrapper.WATVina_global_search(self, exhaustiveness, n_poses, min_rmsd, energy_range, population_size, ga_searching, refinement, tramplitude)
+    def global_search(self, exhaustiveness: "int const"=8, n_poses: "int const"=10, min_rmsd: "float const"=1.500, energy_range: "float const"=3.000, population_size: "int const"=8, ga_searching: "int const"=4, refinement: "bool const"=True, tramplitude: "float const"=1.00, toramplitude: "float const"=1.00) -> "void":
+        return _watvina_wrapper.WATVina_global_search(self, exhaustiveness, n_poses, min_rmsd, energy_range, population_size, ga_searching, refinement, tramplitude, toramplitude)
     pose_atomids = property(_watvina_wrapper.WATVina_pose_atomids_get, _watvina_wrapper.WATVina_pose_atomids_set)
     poses_coords = property(_watvina_wrapper.WATVina_poses_coords_get, _watvina_wrapper.WATVina_poses_coords_set)
     poses_score = property(_watvina_wrapper.WATVina_poses_score_get, _watvina_wrapper.WATVina_poses_score_set)
