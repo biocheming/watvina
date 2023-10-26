@@ -1708,6 +1708,7 @@ class WATVina(object):
     poses_intra = property(_watvina_wrapper.WATVina_poses_intra_get, _watvina_wrapper.WATVina_poses_intra_set)
     poses_torsion = property(_watvina_wrapper.WATVina_poses_torsion_get, _watvina_wrapper.WATVina_poses_torsion_set)
     poses_pharma = property(_watvina_wrapper.WATVina_poses_pharma_get, _watvina_wrapper.WATVina_poses_pharma_set)
+    poses_tmph4 = property(_watvina_wrapper.WATVina_poses_tmph4_get, _watvina_wrapper.WATVina_poses_tmph4_set)
 
     def write_poses(self, output_name: "std::string const &", how_many: "std::size_t"=9) -> "void":
         return _watvina_wrapper.WATVina_write_poses(self, output_name, how_many)
