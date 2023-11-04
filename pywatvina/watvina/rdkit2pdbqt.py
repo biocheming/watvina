@@ -467,8 +467,7 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
         #rot_bond = Chem.MolFromSmarts('[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]') # From Chemaxon
         rot_bond  = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]') #single and not ring, really not in ring?
         
-        exclude_list = ['[NX3]-[CX3]=[O,N]','C(=[O;!R])N']
-        #, '[!#1]-[C;H3,Cl3,F3,Br3]']
+        exclude_list = ['[NX3]-[CX3]=[O,N]', 'C(=[O;!R])N', '[!#1]-[C;H3,Cl3,F3,Br3]']
         excluded_atoms = []
         for excluded_smarts in exclude_list:
             excluded_bond = Chem.MolFromSmarts(excluded_smarts)
