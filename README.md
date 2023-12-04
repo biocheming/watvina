@@ -64,6 +64,10 @@ where ```resname``` for pharmacophore type; ```occupancy```for cutoff distance a
 
 If only keep the ```HVY```, the heavy atoms, the model is quite similar to a molecular shape,
 while other pharmacophores for the colors in shape.
+watvina can generate a initial template ```ph4.pdb``` file based on the protein and ligand interaction.
+```
+watvina --config vina.conf --score_only --genph4
+```
 
 other pharmacophores: 
 
