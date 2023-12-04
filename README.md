@@ -2,8 +2,8 @@
 
 ![Watvina](https://github.com/biocheming/watvina/blob/main/watvina_logo.png)
 
-For drug design purpose, explicit or implicit waters, pharmacophore or position constrained docking, external torsion parameter (in amber/gaff/charmm force field like parameters) are supported in watvina. 
-
+Watvina facilitates drug design with support for explicit or implicit waters, pharmacophore or position-constrained docking, and external torsion parameters (akin to amber/gaff/charmm force fields).
+ 
 ## 1. IMPORTANT NOTES
 ### 1.1 Receptor and ligand(s) should be carefully prepared. KEEP ALL THE NON-POLAR AND POLAR HYDROGENS. 
 ### 1.2 Minimize/Optimize the ligand carefully. Watvina calculates some torsion penalty.
