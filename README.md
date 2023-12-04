@@ -93,7 +93,7 @@ position constrained docking is useful for FEP, enzymatic pre-active pose predic
 watvina --config vina.conf --tramplitude 0
 ```
 
-```--tramplitude 0``` will frozen the ```ROOT```  of the ligand. 
+```--tramplitude 0``` will freeze the ```ROOT```  of the ligand. 
 
 ### 2.6 rigid docking
 ```
