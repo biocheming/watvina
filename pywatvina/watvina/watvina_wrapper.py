@@ -1699,6 +1699,7 @@ class WATVina(object):
     pose_atomids = property(_watvina_wrapper.WATVina_pose_atomids_get, _watvina_wrapper.WATVina_pose_atomids_set)
     poses_coords = property(_watvina_wrapper.WATVina_poses_coords_get, _watvina_wrapper.WATVina_poses_coords_set)
     poses_score = property(_watvina_wrapper.WATVina_poses_score_get, _watvina_wrapper.WATVina_poses_score_set)
+    poses_bfactor = property(_watvina_wrapper.WATVina_poses_bfactor_get, _watvina_wrapper.WATVina_poses_bfactor_set)
     poses_rmsdbest = property(_watvina_wrapper.WATVina_poses_rmsdbest_get, _watvina_wrapper.WATVina_poses_rmsdbest_set)
     poses_rmsdinit = property(_watvina_wrapper.WATVina_poses_rmsdinit_get, _watvina_wrapper.WATVina_poses_rmsdinit_set)
     poses_vdw = property(_watvina_wrapper.WATVina_poses_vdw_get, _watvina_wrapper.WATVina_poses_vdw_set)
