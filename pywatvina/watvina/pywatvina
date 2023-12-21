@@ -48,11 +48,14 @@ class WATVina:
 		self._box_size     = None
 		self._spacing      = 0.375
 		self._out_format   = None
+		self._watvina.set_score_cutoff(100.0)
 	
 	def cite(self):
 		self._watvina.cite()
 	def version(self):
 		self._watvina.version()
+	def set_score_cutoff(self, output_score_cutoff):
+		self._watvina.set_score_cutoff(output_score_cutoff)
 
 	def set_receptor(self, rigid_name=None, flex_name=None):
 		if rigid_name is None:
@@ -300,7 +303,8 @@ class ShareArgs():
 		"toramplitude" : 1.00,
 		
 		#out
-		"out"          : None
+		"out"          : None,
+		"score_cutoff" : 100.0
 	}
 	
 	def get_args():  
@@ -357,6 +361,7 @@ def parse_args():
 	parser.add_argument("--size_z",  type=float, action=UniqueStore, help='Grid size Z')
 
 	#[OUT]
+	parser.add_argument("--score_cutoff", type=float, default=100.0, action=UniqueStore,  help='Top score cutoff for output  [100.0]')
 	parser.add_argument("-o", "--out", type=str, required=False, action=UniqueStore,   help='Output ligand conformation [ .sdf]')
 	parser.add_argument("--log", type=str, required=False, action=UniqueStore,   help='Log information [ NOT WORKING ! ]')
 	#[LOCAL]
@@ -399,7 +404,7 @@ def typing_arg(argkey, argvalue):
 	   			"center_x" , "center_y" , "center_z" , "size_x" , "size_y" , "size_z" , 
 				"energy_range" , "rmsd" , 
 				"weight_vdw" , "weight_hbond" , "weight_electrop" ,  
-				"tramplitude" , "toramplitude"]
+				"tramplitude" , "toramplitude", "score_cutoff"]
 	barglist = ["implicitsol", "score_only", "local_only", "relax_only", "genph4"]
 	iarglist = ["cpu", "seed" , "verbosity" , "exhaustiveness" , "population_size" , "ga_searching  " , "num_modes ", "local_steps"]
 
@@ -437,6 +442,8 @@ if __name__ == '__main__':
 
 	#setup watvina task
 	wv = WATVina(watvinaPars['cpu'], watvinaPars['seed'], watvinaPars['verbosity'])
+	
+	wv.set_score_cutoff(watvinaPars['score_cutoff'])
 	#wv = WATVina(1,0,1)
 	wv.set_receptor(watvinaPars['receptor'])
 
