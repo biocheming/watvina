@@ -123,79 +123,84 @@ REMARK TORSION INDEX  18  17  16  21  0.16   0  3
 ### 2.9 Help information
 ```
 Input:
-  -r [ --receptor ] arg                rigid part of the receptor (PDBQT)
-  --flex arg                           flexible part of the receptor (pdbqt)
-  --template arg                       template p_ph4 (pdb)
-  -w [ --water ] arg                   water file (O coordicates file with 
-                                       resname HOH, energy in the beta column)
-  --pharma arg                         pharmacophore restraints
-  -l [ --ligand ] arg                  ligand.pdbqt(ligand file, PDBQT)
-  --ligands_dir arg                    directory for ligands 
+  -r [ --receptor ] arg                 rigid part of the receptor (PDBQT)
+  --flex arg                            flexible part of the receptor (pdbqt)
+  --template arg                        template ph4 (pdb)
+  -w [ --water ] arg                    water file (O coordicates file with 
+                                        resname HOH, energy in the beta column)
+  --pharma arg                          pharmacophore[ph4] constrained file
+  -l [ --ligand ] arg                   ligand.pdbqt(ligand file, PDBQT)
+  --ligands_dir arg                     directory for ligands 
+  --multiligs_pdbqt arg                 pdbqt file containing multi ligands
 
 Search space (required):
-  --center_x arg                       X coordinate of the center
-  --center_y arg                       Y coordinate of the center
-  --center_z arg                       Z coordinate of the center
-  --size_x arg                         size in the X dimension (Angstroms)
-  --size_y arg                         size in the Y dimension (Angstroms)
-  --size_z arg                         size in the Z dimension (Angstroms)
+  --center_x arg                        X coordinate of the center
+  --center_y arg                        Y coordinate of the center
+  --center_z arg                        Z coordinate of the center
+  --size_x arg                          size in the X dimension (Angstroms)
+  --size_y arg                          size in the Y dimension (Angstroms)
+  --size_z arg                          size in the Z dimension (Angstroms)
 
 Output (optional):
-  -o [ --out ] arg                     output models (PDBQT), the default is 
-                                       chosen based on the ligand file name
-  --out_dir arg (=OUTPUT)              output directory for batch mode
-  --log arg                            optionally, write log file
-  --genph4                             generate pseudo pharmacophore model in 
-                                       pdb format
+  -o [ --out ] arg                      output models (PDBQT), the default is 
+                                        chosen based on the ligand file name
+  --out_dir arg (=WVOUTDIR)             output directory for batch mode
+  --score_cutoff arg (=3.40e+38)        the cutoff score for output
+  --ph4_cutoff arg (=1.175e-38)         the cutoff of ph4 for output
+  --log arg                             optionally, write log file
+  --genph4                              generate pseudo pharmacophore model in 
+                                        pdb format
 
 Advanced options (see the manual):
-  --score_only                         score only - search space can be omitted
-  --local_only                         do local search only
-  --implicitsol                        implicit solvation model result in a 
-                                       implicitsol.pdb
-  --grid_space arg (=0.375)            grid space
-  --weight_vdw arg (=0.184)            vdw weight
-  --weight_hbond arg (=1)              Hydrogen bond weight
-  --weight_electrop arg (=0.25)        polar repulsion or hydrophobic 
-                                       attraction
-  --weight_desol arg (=-0.5)           desolvation weight[depends on water 
-                                       model used]
-  --wclash_dist arg (=0.5)             clash distance with water[depends on 
-                                       water model used]
-  --weight_torsion arg (=0.300)       external torsion weight[depends on 
-                                       forcefield or unit in kj/mol or 
-                                       kcal/mol]
-  --relax_only                         do relax only without BFGS refinement 
-                                       for local searching
-  --local_steps arg (=2000)            local relax steps
-  --tramplitude arg (=1)               amplitude for translation/rotation in 
-                                       local relax
-  --toramplitude arg (=1)              amplitude for torsion in local relax
+  --score_only                          score only - search space can be 
+                                        omitted
+  --local_only                          do local search only
+  --implicitsol                         implicit solvation model result in a 
+                                        implicitsol.pdb
+  --grid_space arg (=0.375)             grid space
+  --weight_vdw arg (=0.184)             vdw weight
+  --weight_hbond arg (=1)               Hydrogen bond weight
+  --weight_electrop arg (=0.25)         polar repulsion or hydrophobic 
+                                        attraction
+  --weight_desol arg (=-0.5)            desolvation weight[depends on water 
+                                        model used]
+  --wclash_dist arg (=0.5)              clash distance with water[depends on 
+                                        water model used]
+  --weight_torsion arg (=0.30)          external torsion weight[depends on 
+                                        forcefield or unit in kj/mol or 
+                                        kcal/mol]
+  --relax_only                          do relax only without BFGS refinement 
+                                        for local searching
+  --local_steps arg (=2000)             local relax steps
+  --tramplitude arg (=1)                amplitude for translation/rotation in 
+                                        local relax
+  --toramplitude arg (=1)               amplitude for torsion in local relax
 
 Misc (optional):
-  --cpu arg                            the number of CPUs to use (the default 
-                                       is to try to detect the number of CPUs 
-                                       or, failing that, use 1)
-  --seed arg                           explicit random seed
-  --exhaustiveness arg (=8)            exhaustiveness of the global search 
-                                       (roughly proportional to time): 1+
-  --population arg (=8)                population size for genetic algorithm
-  --ga_search arg (=4)                 amplitude for ga searching loop size: 0,
-                                       1, 2...
-  --num_modes arg (=10)                maximum number of binding modes to 
-                                       generate
-  --rmsd arg (=1.5)                    modes clustering cutoff
-  --energy_range arg (=3)              maximum energy difference between the 
-                                       best binding mode and the worst one 
-                                       displayed (kcal/mol)
+  --cpu arg                             the number of CPUs to use (the default 
+                                        is to try to detect the number of CPUs 
+                                        or, failing that, use 1)
+  --seed arg                            explicit random seed
+  --exhaustiveness arg (=8)             exhaustiveness of the global search 
+                                        (roughly proportional to time): 1+
+  --population arg (=8)                 population size for genetic algorithm
+  --ga_search arg (=4)                  amplitude for ga searching loop size: 
+                                        0, 1, 2...
+  --num_modes arg (=10)                 maximum number of binding modes to 
+                                        generate
+  --rmsd arg (=1.5)                     modes clustering cutoff
+  --energy_range arg (=3)               maximum energy difference between the 
+                                        best binding mode and the worst one 
+                                        displayed (kcal/mol)
 
 Configuration file (optional):
-  -c [ --config ] arg                  the above options can be put here
+  -c [ --config ] arg                   the above options can be put here
 
 Information (optional):
-  --help                               display usage summary
-  --help_advanced                      display usage summary with advanced 
-                                       options
-  --verbosity arg                      display IO information
-  --version                            display program version
+  --help                                display usage summary
+  --help_advanced                       display usage summary with advanced 
+                                        options
+  --verbosity arg                       display IO information
+  --version                             display program version
+
 ```
