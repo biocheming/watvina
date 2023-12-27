@@ -99,7 +99,7 @@ class WATVina:
 	def set_score_cutoff(self,output_score_cutoff):
 		self._watvina.set_score_cutoff(output_score_cutoff)
 
-	def set_score_cutoff(self,output_ph4_cutoff):
+	def set_ph4_cutoff(self,output_ph4_cutoff):
 		self._watvina.set_ph4_cutoff(output_ph4_cutoff)
 
 	def set_receptor(self, rigid_name=None, flex_name=None):
