@@ -1646,6 +1646,9 @@ class WATVina(object):
     def set_score_cutoff(self, output_score_cutoff: "float const &") -> "void":
         return _watvina_wrapper.WATVina_set_score_cutoff(self, output_score_cutoff)
 
+    def set_ph4_cutoff(self, output_ph4_cutoff: "float const &") -> "void":
+        return _watvina_wrapper.WATVina_set_ph4_cutoff(self, output_ph4_cutoff)
+
     def set_receptor(self, *args) -> "void":
         return _watvina_wrapper.WATVina_set_receptor(self, *args)
 

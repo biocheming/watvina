@@ -49,6 +49,7 @@ class WATVina:
 		self._spacing      = 0.375
 		self._out_format   = None
 		self._watvina.set_score_cutoff(100.0)
+		self._watvina.set_ph4_cutoff(0.0001)
 	
 	def cite(self):
 		self._watvina.cite()
@@ -56,6 +57,8 @@ class WATVina:
 		self._watvina.version()
 	def set_score_cutoff(self, output_score_cutoff):
 		self._watvina.set_score_cutoff(output_score_cutoff)
+	def set_ph4_cutoff(self, output_score_cutoff):
+		self._watvina.set_ph4_cutoff(output_score_cutoff)
 
 	def set_receptor(self, rigid_name=None, flex_name=None):
 		if rigid_name is None:
@@ -304,7 +307,8 @@ class ShareArgs():
 		
 		#out
 		"out"          : None,
-		"score_cutoff" : 100.0
+		"score_cutoff" : 100.0,
+		"ph4_cutoff"   : 0.0001
 	}
 	
 	def get_args():  
@@ -361,7 +365,8 @@ def parse_args():
 	parser.add_argument("--size_z",  type=float, action=UniqueStore, help='Grid size Z')
 
 	#[OUT]
-	parser.add_argument("--score_cutoff", type=float, default=100.0, action=UniqueStore,  help='Top score cutoff for output  [100.0]')
+	parser.add_argument("--score_cutoff", type=float, default=100.0, action=UniqueStore,  help='Score cutoff for output  [100.0]')
+	parser.add_argument("--ph4_cutoff", type=float, default=0.0001, action=UniqueStore,  help='Ph4 cutoff for output  [0.0001]')
 	parser.add_argument("-o", "--out", type=str, required=False, action=UniqueStore,   help='Output ligand conformation [ .sdf]')
 	parser.add_argument("--log", type=str, required=False, action=UniqueStore,   help='Log information [ NOT WORKING ! ]')
 	#[LOCAL]
@@ -404,7 +409,7 @@ def typing_arg(argkey, argvalue):
 	   			"center_x" , "center_y" , "center_z" , "size_x" , "size_y" , "size_z" , 
 				"energy_range" , "rmsd" , 
 				"weight_vdw" , "weight_hbond" , "weight_electrop" ,  
-				"tramplitude" , "toramplitude", "score_cutoff"]
+				"tramplitude" , "toramplitude", "score_cutoff", "ph4_cutoff"]
 	barglist = ["implicitsol", "score_only", "local_only", "relax_only", "genph4"]
 	iarglist = ["cpu", "seed" , "verbosity" , "exhaustiveness" , "population_size" , "ga_searching  " , "num_modes ", "local_steps"]
 
@@ -444,6 +449,7 @@ if __name__ == '__main__':
 	wv = WATVina(watvinaPars['cpu'], watvinaPars['seed'], watvinaPars['verbosity'])
 	
 	wv.set_score_cutoff(watvinaPars['score_cutoff'])
+	wv.set_ph4_cutoff(watvinaPars['ph4_cutoff'])
 	#wv = WATVina(1,0,1)
 	wv.set_receptor(watvinaPars['receptor'])
 
