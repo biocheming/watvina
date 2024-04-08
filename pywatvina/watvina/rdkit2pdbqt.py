@@ -378,11 +378,17 @@ if __name__ == "__main__":
             
             #We treat the lig_and_core as the scaffold to reduce the MCS searching time.
             scaffold=Chem.MolFromMolFile(lig_and_core[1],removeHs=False)
-            mcs= Chem.RemoveHs(scaffold)
-            scaffold_atoms = list(mol.GetSubstructMatch(mcs))
-            ref_atom_mapping_list = list(scaffold.GetSubstructMatch(mcs))
-            core_atom_mapping_dict = dict(zip(scaffold_atoms, ref_atom_mapping_list))
-            core_atom_idx_list = get_core_alignment_for_template_docking(scaffold, mol, core_atom_mapping_dict)		
+            mcs=Chem.RemoveHs(scaffold)
+            mcs_smarts=Chem.MolToSmarts(mcs)
+            #print(f"REMARK  MCS_SMARTS {mcs_smarts}")
+            if mol.HasSubstructMatch(mcs):
+                scaffold_atoms = list(mol.GetSubstructMatch(mcs))
+                ref_atom_mapping_list = list(scaffold.GetSubstructMatch(mcs))
+                core_atom_mapping_dict = dict(zip(scaffold_atoms, ref_atom_mapping_list))
+                core_atom_idx_list = get_core_alignment_for_template_docking(scaffold, mol, core_atom_mapping_dict)
+            else:
+                print("Core matching failed.")
+                exit()	
 
         pdbqtlines=MolCoreToPDBQTBlock(mol, core_atom_idx_list, True, False, True)
         print(pdbqtlines)
