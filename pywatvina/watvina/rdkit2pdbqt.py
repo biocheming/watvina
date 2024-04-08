@@ -370,11 +370,16 @@ if __name__ == "__main__":
         Chem.SanitizeMol(mol)
         core_atom_idx_list = []
         if len(lig_and_core) == 2:
-            scaffold=Chem.MolFromMolFile(lig_and_core[1],removeHs=False)
+            #scaffold=Chem.MolFromMolFile(lig_and_core[1],removeHs=False)
             #For better solution: https://github.com/proteneer/timemachine/blob/master/timemachine/fe/atom_mapping.py
-            mcs = Chem.MolFromSmarts(rdFMCS.FindMCS([mol, scaffold]).smartsString)
+            #mcs = Chem.MolFromSmarts(rdFMCS.FindMCS([mol, scaffold]).smartsString)
+            #scaffold_atoms = list(mol.GetSubstructMatch(mcs))
+            #ref_atom_mapping_list = list(scaffold.GetSubstructMatch(mcs))
+            
+            #We treat the lig_and_core as the scaffold to reduce the MCS searching time.
+            scaffold=Chem.MolFromMolFile(lig_and_core[1],removeHs=False)
+            mcs= Chem.RemoveHs(scaffold)
             scaffold_atoms = list(mol.GetSubstructMatch(mcs))
-
             ref_atom_mapping_list = list(scaffold.GetSubstructMatch(mcs))
             core_atom_mapping_dict = dict(zip(scaffold_atoms, ref_atom_mapping_list))
             core_atom_idx_list = get_core_alignment_for_template_docking(scaffold, mol, core_atom_mapping_dict)		
