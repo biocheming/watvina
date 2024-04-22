@@ -48,7 +48,7 @@ def get_core_alignment_for_template_docking(reference_mol, query_mol, core_atom_
         reference_atom_idx = core_atom_mapping_dict[query_atom_idx]
         core_atom_position = reference_conformer.GetAtomPosition(reference_atom_idx)
         virtual_site_atom_idx = ff.AddExtraPoint(core_atom_position.x, core_atom_position.y, core_atom_position.z, fixed=True) - 1
-        ff.AddDistanceConstraint(virtual_site_atom_idx, query_atom_idx, 0, 0, 20.0) #100 is too high, By Rongfeng
+        ff.AddDistanceConstraint(virtual_site_atom_idx, query_atom_idx, 0, 0, 60.0) #100 is too high, By Rongfeng. But 20 may not be enough.
 
     ff.Initialize()
 
