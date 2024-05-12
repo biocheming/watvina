@@ -3,7 +3,7 @@
 Original code from Open Drug Discovery Toolkit (ODDT), J Cheminform 7, 26 (2015). 
 Modified by Ximing XU, Rongfeng ZOU, Hongrui LIN
 xuximing@ouc.edu.cn
-version 2023-12-07 tested with RDkit 2024.03.1pre
+version 2024-05-12 tested with RDkit 2024.03.1 py312h93d94ad_0
 '''
 from __future__ import absolute_import, print_function
 from math import isnan, isinf
@@ -48,7 +48,7 @@ def get_core_alignment_for_template_docking(reference_mol, query_mol, core_atom_
         reference_atom_idx = core_atom_mapping_dict[query_atom_idx]
         core_atom_position = reference_conformer.GetAtomPosition(reference_atom_idx)
         virtual_site_atom_idx = ff.AddExtraPoint(core_atom_position.x, core_atom_position.y, core_atom_position.z, fixed=True) - 1
-        ff.AddDistanceConstraint(virtual_site_atom_idx, query_atom_idx, 0, 0, 60.0) #100 is too high, By Rongfeng. But 20 may not be enough.
+        ff.AddDistanceConstraint(virtual_site_atom_idx, query_atom_idx, 0, 0, 60.0) #100 is too high, By Rongfeng
 
     ff.Initialize()
 
@@ -388,7 +388,7 @@ if __name__ == "__main__":
                 core_atom_idx_list = get_core_alignment_for_template_docking(scaffold, mol, core_atom_mapping_dict)
             else:
                 print("Core matching failed.")
-                exit()	
+                exit()
 
         pdbqtlines=MolCoreToPDBQTBlock(mol, core_atom_idx_list, True, False, True)
         print(pdbqtlines)
