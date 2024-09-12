@@ -38,27 +38,26 @@ watvina --config vina.conf --template a_pseudo_pharmacophore_pdb_file.pdb
 the format of ```a_pseudo_pharmacophore_pdb_file.pdb```is in ```pdb```format
 
 ```
-ATOM     20 CH   HVY P  20      17.244  18.241  50.736  2.00  0.20           C
-ATOM     20 ND   DON P  20      17.244  18.241  50.736  1.00  0.58           N
-ATOM     18 CH   HVY P  18      18.452  17.752  51.268  2.00  0.20           C
-ATOM     18 CA   ARO P  18      18.452  17.752  51.268  0.70  0.28           C
-ATOM     21 CH   HVY P  21      16.957  19.505  50.313  2.00  0.20           C
-ATOM     22 CH   HVY P  22      15.713  19.683  49.527  2.00  0.20           C
-ATOM     22 CA   ARO P  22      15.713  19.683  49.527  0.70  0.28           C
-ATOM     36 CH   HVY P  36      17.643  20.506  50.528  2.00  0.20           C
-ATOM     36 OA   ACC P  36      17.643  20.506  50.528  1.00  0.56           O
-ATOM     14 CH   HVY P  14      20.800  18.082  51.969  2.00  0.20           C
-ATOM     14 CA   ARO P  14      20.800  18.082  51.969  0.70  0.28           C
-ATOM     13 CH   HVY P  13      21.893  18.937  52.110  2.00  0.20           C
-ATOM     13 ND   DON P  13      21.893  18.937  52.110  1.00  0.35           N
-ATOM     15 CH   HVY P  15      20.895  16.683  52.364  2.00  0.20           C
-ATOM     15 CA   ARO P  15      20.895  16.683  52.364  0.70  0.28           C
-ATOM     37 CH   HVY P  37      22.181  16.074  52.953  2.00  0.20           C
-ATOM     16 CH   HVY P  16      19.741  15.840  52.195  2.00  0.20           C
-ATOM     16 CA   ARO P  16      19.741  15.840  52.195  0.70  0.36           C
-ATOM     17 CH   HVY P  17      18.520  16.379  51.645  2.00  0.20           C
-ATOM     17 CA   ARO P  17      18.520  16.379  51.645  0.70  0.28           C
-ATOM     19 CH   HVY P  19      19.616  18.588  51.441  2.00  0.20           C
+ATOM      1 CH   HVY P   2      -0.605  29.778  21.561  2.00  0.20           C
+ATOM      2 CH   HVY P  12       1.270  28.887  19.820  2.00  0.20           C
+ATOM      3 CH   HVY P  13       2.006  27.868  19.172  2.00  0.20           C
+ATOM      4 CA   ARO P  13       2.006  27.868  19.172  0.70  0.27           C
+ATOM      5 CH   HVY P  17       2.939  28.100  18.157  2.00  0.20           C
+ATOM      6 ND   DON P  17       2.939  28.100  18.157  1.00  0.41           N
+ATOM      7 CH   HVY P  14       1.727  26.553  19.510  2.00  0.20           C
+ATOM      8 CH   HVY P   3      -0.477  29.435  22.941  2.00  0.20           C
+ATOM      9 OA   ACC P   3      -0.477  29.435  22.941  1.00  0.48           O
+ATOM     10 CH   HVY P   7      -3.861  31.122  17.827  2.00  0.20           C
+ATOM     11 CH   HVY P  18       2.859  29.108  17.251  2.00  0.20           C
+ATOM     12 CH   HVY P  20       2.164  30.901  16.325  2.00  0.20           C
+ATOM     13 CH   HVY P  23       1.204  31.967  16.050  2.00  0.20           C
+ATOM     14 CA   ARO P  23       1.204  31.967  16.050  0.70  0.26           C
+ATOM     15 CH   HVY P  21       3.350  30.513  15.703  2.00  0.20           C
+ATOM     16 CA   ARO P  21       3.350  30.513  15.703  0.70  0.43           C
+ATOM     17 CH   HVY P  22       3.811  29.380  16.306  2.00  0.20           C
+ATOM     18 OA   ACC P  22       3.811  29.380  16.306  1.00  0.70           O
+ATOM     19 CH   HVY P  24       1.152  32.577  14.797  2.00  0.20           C
+ATOM     20 CA   ARO P  24       1.152  32.577  14.797  0.70  0.30           C
 
 ```
 where ```resname``` for pharmacophore type; ```occupancy```for cutoff distance and ```b-factor``` for contribution weight.
