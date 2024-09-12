@@ -2,6 +2,10 @@
 
 ![Watvina](https://github.com/biocheming/watvina/blob/main/watvina_logo.png)
 
+<audio controls>
+  <source src="The_Song_of_Watvina/Watvina.mp3" type="audio/mpeg">
+</audio>
+
 Watvina facilitates drug design with support for explicit or implicit waters, pharmacophore or position-constrained docking, and external torsion parameters (akin to amber/gaff/charmm force fields).
  
 ## 1. IMPORTANT NOTES
