@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 #  -*- coding: UTF-8 -*-
 #  By Ximing XU, xuximing@ouc.edu.cn
+# pywatvina based on the Autodock vina 1.2 
 import argparse, configparser
 import time
 import sys
