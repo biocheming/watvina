@@ -101,13 +101,16 @@ watvina --config vina.conf --toramplitude 0
 ```
 ```--toramplitude 0``` will frozen the torsions of the ligand
 
-### 2.7 The pdbqt files for receptors and ligands are prepared from their pdb file by mgltools, or from rdkit2pdbqt.py(using opencadd,)
+### 2.7 The pdbqt files for receptors and ligands are prepared from their pdb file by mgltools, or from rdkit2pdbqt.py
 
 ```
-rdkit2pdbqt -l lig.sdf
-rdkit2pdbqt -r rec.pdb
+rdkit2pdbqt.py -l lig.sdf
+rdkit2pdbqt.py -r rec.pdb
 ```
-
+or setup the scaffold as ROOT of the pdbqt
+```
+rdkit2pdbqt.py -l lig.sdf core.sdf
+```
 ### 2.8 External torsion parameter
 
 External torsion parameters in the header of ligand file
@@ -122,85 +125,77 @@ REMARK TORSION INDEX  18  17  16  21  0.16   0  3
 ```
 ### 2.9 Help information
 ```
-Input:
-  -r [ --receptor ] arg                 rigid part of the receptor (PDBQT)
-  --flex arg                            flexible part of the receptor (pdbqt)
-  --template arg                        template ph4 (pdb)
-  -w [ --water ] arg                    water file (O coordicates file with 
-                                        resname HOH, energy in the beta column)
-  --pharma arg                          pharmacophore[ph4] constrained file
-  -l [ --ligand ] arg                   ligand.pdbqt(ligand file, PDBQT)
-  --ligands_dir arg                     directory for ligands 
-  --multiligs_pdbqt arg                 pdbqt file containing multi ligands
+Input options:
+  -r, --receptor arg         Rigid part of the receptor (PDBQT)
+      --flex arg             Flexible part of the receptor (pdbqt)
+      --template arg         Template ph4 (pdb)
+  -w, --water arg            Water file (O coordinates file with resname HOH, 
+                             energy in the beta column)
+      --pharma arg           Pharmacophore[ph4] constrained file
+      --ligands_dir arg      Directory for ligands
+      --multiligs_pdbqt arg  PDBQT file containing multi ligands
+  -l, --ligand arg           Ligand.pdbqt(ligand file, PDBQT)
 
-Search space (required):
-  --center_x arg                        X coordinate of the center
-  --center_y arg                        Y coordinate of the center
-  --center_z arg                        Z coordinate of the center
-  --size_x arg                          size in the X dimension (Angstroms)
-  --size_y arg                          size in the Y dimension (Angstroms)
-  --size_z arg                          size in the Z dimension (Angstroms)
+ Output options:
+  -o, --out arg             Output models (PDBQT)
+      --out_dir arg         Output directory for batch mode (default: OUTDIR)
+      --score_cutoff arg    The cutoff score for output (default: 10000)
+      --ph4_cutoff arg      The cutoff of ph4 for output (default: -1.0)
+      --timeout_cutoff arg  The timeout for each thread (default: 600)
+      --log arg             Optionally, write log file
 
-Output (optional):
-  -o [ --out ] arg                      output models (PDBQT), the default is 
-                                        chosen based on the ligand file name
-  --out_dir arg (=WVOUTDIR)             output directory for batch mode
-  --score_cutoff arg (=3.40e+38)        the cutoff score for output
-  --ph4_cutoff arg (=1.175e-38)         the cutoff of ph4 for output
-  --log arg                             optionally, write log file
-  --genph4                              generate pseudo pharmacophore model in 
-                                        pdb format
+ Search Space options:
+      --center_x arg  X coordinate of the center
+      --center_y arg  Y coordinate of the center
+      --center_z arg  Z coordinate of the center
+      --size_x arg    Size in the X dimension (Angstroms) (default: 25)
+      --size_y arg    Size in the Y dimension (Angstroms) (default: 25)
+      --size_z arg    Size in the Z dimension (Angstroms) (default: 25)
 
-Advanced options (see the manual):
-  --score_only                          score only - search space can be 
-                                        omitted
-  --local_only                          do local search only
-  --implicitsol                         implicit solvation model result in a 
-                                        implicitsol.pdb
-  --grid_space arg (=0.375)             grid space
-  --weight_vdw arg (=0.184)             vdw weight
-  --weight_hbond arg (=1)               Hydrogen bond weight
-  --weight_electrop arg (=0.25)         polar repulsion or hydrophobic 
-                                        attraction
-  --weight_desol arg (=-0.5)            desolvation weight[depends on water 
-                                        model used]
-  --wclash_dist arg (=0.5)              clash distance with water[depends on 
-                                        water model used]
-  --weight_torsion arg (=0.30)          external torsion weight[depends on 
-                                        forcefield or unit in kj/mol or 
-                                        kcal/mol]
-  --relax_only                          do relax only without BFGS refinement 
-                                        for local searching
-  --local_steps arg (=2000)             local relax steps
-  --tramplitude arg (=1)                amplitude for translation/rotation in 
-                                        local relax
-  --toramplitude arg (=1)               amplitude for torsion in local relax
+ Misc options:
+      --cpu arg             The number of CPUs to use
+      --seed arg            Explicit random seed
+      --exhaustiveness arg  Exhaustiveness of the global search (default: 8)
+      --population arg      Population size for genetic algorithm (default: 8)
+      --ga_search arg       Amplitude for ga searching loop size (default: 4)
+      --num_modes arg       Maximum number of binding modes to generate 
+                            (default: 10)
+      --rmsd arg            Modes clustering cutoff (default: 1.5)
+      --energy_range arg    Maximum energy difference between the best binding 
+                            mode and the worst one displayed (kcal/mol) 
+                            (default: 3.0)
 
-Misc (optional):
-  --cpu arg                             the number of CPUs to use (the default 
-                                        is to try to detect the number of CPUs 
-                                        or, failing that, use 1)
-  --seed arg                            explicit random seed
-  --exhaustiveness arg (=8)             exhaustiveness of the global search 
-                                        (roughly proportional to time): 1+
-  --population arg (=8)                 population size for genetic algorithm
-  --ga_search arg (=4)                  amplitude for ga searching loop size: 
-                                        0, 1, 2...
-  --num_modes arg (=10)                 maximum number of binding modes to 
-                                        generate
-  --rmsd arg (=1.5)                     modes clustering cutoff
-  --energy_range arg (=3)               maximum energy difference between the 
-                                        best binding mode and the worst one 
-                                        displayed (kcal/mol)
+ Config File options:
+  -c, --config arg  The above options can be put here
 
-Configuration file (optional):
-  -c [ --config ] arg                   the above options can be put here
+ Advanced options:
+      --score_only           Score only - search space can be omitted
+      --genph4               Generate pseudo pharmacophore model in pdb format
+      --local_only           Do local search only
+      --implicitsol          Implicit solvation model result in an 
+                             implicitsol.pdb
+      --grid_space arg       Grid space (default: 0.375)
+      --weight_vdw arg       Vdw weight (default: 0.184)
+      --weight_hbond arg     Hydrogen bond weight (default: 1.000)
+      --weight_electrop arg  Polar repulsion or hydrophobic attraction 
+                             (default: 0.250)
+      --weight_desol arg     Desolvation weight [depends on water model used] 
+                             (default: -0.500)
+      --wclash_dist arg      Clash distance with water [depends on water model 
+                             used] (default: 0.500)
+      --weight_torsion arg   External torsion weight [depends on forcefield or 
+                             unit ] (default: 0.300)
+      --relax_only           Do relax only without BFGS refinement for local 
+                             searching
+      --local_steps arg      Local relax steps (default: 2000)
+      --tramplitude arg      Amplitude for translation/rotation in local relax 
+                             (default: 1.000)
+      --toramplitude arg     Amplitude for torsion in local relax (default: 
+                             1.000)
 
-Information (optional):
-  --help                                display usage summary
-  --help_advanced                       display usage summary with advanced 
-                                        options
-  --verbosity arg                       display IO information
-  --version                             display program version
-
+ Information options:
+  -h, --help           Display usage summary
+      --help_advanced  Display usage summary with advanced options
+      --verbosity arg  Display IO information (default: 2)
+  -v, --version        Display program version
 ```
