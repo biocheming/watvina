@@ -1,3 +1,7 @@
+/*
+Author: Xu Ximing, with the help of cursor
+Email: xuximing@ouc.edu.cn
+ */
 #include <vector>
 #include <string>
 #include <fstream>
