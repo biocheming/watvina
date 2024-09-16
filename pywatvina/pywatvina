@@ -139,8 +139,8 @@ class WATVina:
 		self._spacing = granularity
 		self._watvina.set_grid_dims(box_center[0],box_center[1],box_center[2],box_size[0],box_size[1],box_size[2], granularity)
 
-	def precalculate(self,full_atom_type=False):
-		self._watvina.set_precalculate_sf(prec_full_atomtypes=full_atom_type)
+	def precalculate(self):
+		self._watvina.set_precalculate_sf()
 
 	def compute_watvina_map(self):
 		self._watvina.compute_watvina_maps()
