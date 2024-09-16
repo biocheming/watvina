@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <getopt.h>
 
-struct Atom {
+struct SDFAtom {
     int id;
     double x, y, z;
     std::string element;
@@ -24,36 +24,43 @@ struct Atom {
     std::vector<int> bonds;
     bool inRing;
     bool inAromaticRing;
-     Atom() : x(0), y(0), z(0), inRing(false) ,type("") {}  // 默认构造函数
+     SDFAtom() : x(0), y(0), z(0), inRing(false) ,type("") {}  // 默认构造函数
 };
 
-struct Bond {
+struct SDFBond {
     int atom1, atom2;
     int type;
     bool rotatable;
     bool inRing;
     bool isAromatic;
-    Bond() : atom1(-1), atom2(-1), type(0), rotatable(false), inRing(false), isAromatic(false) {}  // 默认构造函数
+    SDFBond() : atom1(-1), atom2(-1), type(0), rotatable(false), inRing(false), isAromatic(false) {}  // 默认构造函数
 
 };
 
-struct Molecule {
-    std::vector<Atom> atoms;
-    std::vector<Bond> bonds;
+struct SDFMolecule {
+    std::string name;
+    std::vector<SDFAtom> atoms;
+    std::vector<SDFBond> bonds;
     std::vector<std::vector<int>> rings;
 };
 
-Molecule parseSDF(const std::string& filename) {
-    Molecule mol;
+SDFMolecule parseSDF(const std::string& filename) {
+    SDFMolecule mol;
     std::ifstream file(filename);
     std::string line;
     std::map<std::string, int> elementCount;
 
-    // Skip header
-    for (int i = 0; i < 3; ++i) {
-        std::getline(file, line);
+    if (!file.is_open()) {
+        throw std::runtime_error("Unable to open file: " + filename);
     }
 
+    // Read molecule name (first line)
+    std::getline(file, mol.name);
+    mol.name = mol.name.substr(0, mol.name.find_first_of("\t\r\n"));  // Remove any trailing whitespace
+
+    // Skip next two lines (usually program identifier and user/date/time info)
+    std::getline(file, line);
+    std::getline(file, line);
     // Read atom and bond counts
     std::getline(file, line);
     int atomCount = std::stoi(line.substr(0, 3));
@@ -62,7 +69,7 @@ Molecule parseSDF(const std::string& filename) {
     // Read atoms
     for (int i = 0; i < atomCount; ++i) {
         std::getline(file, line);
-        Atom atom;
+        SDFAtom atom;
         atom.id = i;
         atom.x = std::stod(line.substr(0, 10));
         atom.y = std::stod(line.substr(10, 10));
@@ -80,7 +87,7 @@ Molecule parseSDF(const std::string& filename) {
     // Read bonds
     for (int i = 0; i < bondCount; ++i) {
         std::getline(file, line);
-        Bond bond;
+        SDFBond bond;
         bond.atom1 = std::stoi(line.substr(0, 3)) - 1;
         bond.atom2 = std::stoi(line.substr(3, 3)) - 1;
         bond.type = std::stoi(line.substr(6, 3));
@@ -100,15 +107,15 @@ Molecule parseSDF(const std::string& filename) {
 }
 
 // 添加这个辅助函数来计算四面体体积
-double tetrahedronVolume(const Atom& a, const Atom& b, const Atom& c, const Atom& d) {
+double tetrahedronVolume(const SDFAtom& a, const SDFAtom& b, const SDFAtom& c, const SDFAtom& d) {
     double ax = b.x - a.x, ay = b.y - a.y, az = b.z - a.z;
     double bx = c.x - a.x, by = c.y - a.y, bz = c.z - a.z;
     double cx = d.x - a.x, cy = d.y - a.y, cz = d.z - a.z;
     return std::abs(ax * (by * cz - bz * cy) + ay * (bz * cx - bx * cz) + az * (bx * cy - by * cx)) / 6.0;
 }
 
-bool NIsReceptor(const Molecule& mol, int atomId) {
-    const Atom& a = mol.atoms[atomId];
+bool NIsReceptor(const SDFMolecule& mol, int atomId) {
+    const SDFAtom& a = mol.atoms[atomId];
     
     // 检查是否是N原子
     if (a.element != "N") return false;
@@ -124,9 +131,9 @@ bool NIsReceptor(const Molecule& mol, int atomId) {
 
     // 规则2: 如果N原子连接3个键
     if (bondCount == 3) {
-        const Atom& neighbor1 = mol.atoms[a.bonds[0]];
-        const Atom& neighbor2 = mol.atoms[a.bonds[1]];
-        const Atom& neighbor3 = mol.atoms[a.bonds[2]];
+        const SDFAtom& neighbor1 = mol.atoms[a.bonds[0]];
+        const SDFAtom& neighbor2 = mol.atoms[a.bonds[1]];
+        const SDFAtom& neighbor3 = mol.atoms[a.bonds[2]];
 
         // 计算四面体体积
         double volume = tetrahedronVolume(a, neighbor1, neighbor2, neighbor3);
@@ -152,7 +159,7 @@ struct PairHash {
     }
 };
 
-void findRingsDFS(const Molecule& mol, int start, int current, std::vector<bool>& visited, 
+void findRingsDFS(const SDFMolecule& mol, int start, int current, std::vector<bool>& visited, 
                   std::vector<int>& path, std::vector<std::vector<int>>& rings) {
     visited[current] = true;
     path.push_back(current);
@@ -169,7 +176,7 @@ void findRingsDFS(const Molecule& mol, int start, int current, std::vector<bool>
     path.pop_back();
 }
 
-void findAllRings(Molecule& mol) {
+void findAllRings(SDFMolecule& mol) {
     std::vector<bool> visited(mol.atoms.size(), false);
     std::vector<int> path;
     for (size_t i = 0; i < mol.atoms.size(); ++i) {
@@ -184,7 +191,7 @@ void findAllRings(Molecule& mol) {
         for (size_t i = 0; i < ring.size(); ++i) {
             int atom1 = ring[i];
             int atom2 = ring[(i + 1) % ring.size()];
-            for (Bond& bond : mol.bonds) {
+            for (SDFBond& bond : mol.bonds) {
                 if ((bond.atom1 == atom1 && bond.atom2 == atom2) ||
                     (bond.atom1 == atom2 && bond.atom2 == atom1)) {
                     bond.inRing = true;
@@ -195,12 +202,12 @@ void findAllRings(Molecule& mol) {
     }
 }
 
-void identifyAromaticRings(Molecule& mol) {
+void identifyAromaticRings(SDFMolecule& mol) {
     for (auto& ring : mol.rings) {
         if (ring.size() == 5 || ring.size() == 6) {
             bool isAromatic = true;
             for (int atomId : ring) {
-                const Atom& atom = mol.atoms[atomId];
+                const SDFAtom& atom = mol.atoms[atomId];
                 if (atom.element != "C" && atom.element != "N" && atom.element != "O" && atom.element != "S") {
                     isAromatic = false;
                     break;
@@ -213,7 +220,7 @@ void identifyAromaticRings(Molecule& mol) {
                 for (size_t i = 0; i < ring.size(); ++i) {
                     int atom1 = ring[i];
                     int atom2 = ring[(i + 1) % ring.size()];
-                    for (Bond& bond : mol.bonds) {
+                    for (SDFBond& bond : mol.bonds) {
                         if ((bond.atom1 == atom1 && bond.atom2 == atom2) ||
                             (bond.atom1 == atom2 && bond.atom2 == atom1)) {
                             bond.isAromatic = true;
@@ -226,10 +233,10 @@ void identifyAromaticRings(Molecule& mol) {
     }
 }
 
-bool is_aromatic_bond(const Molecule& mol, Bond& bond) {
+bool is_aromatic_bond(const SDFMolecule& mol, SDFBond& bond) {
     // 获取键连接的两个原子
-    const Atom& atom1 = mol.atoms[bond.atom1];
-    const Atom& atom2 = mol.atoms[bond.atom2];
+    const SDFAtom& atom1 = mol.atoms[bond.atom1];
+    const SDFAtom& atom2 = mol.atoms[bond.atom2];
 
     // 检查原子是否可能是芳香环的一部分（C, N, O, S）
     auto is_aromatic_element = [](const std::string& element) {
@@ -272,7 +279,7 @@ bool is_aromatic_bond(const Molecule& mol, Bond& bond) {
     // 计算环中的π电子数
     int pi_electrons = 0;
     for (size_t i = 0; i < ring->size(); ++i) {
-        const Atom& atom = mol.atoms[(*ring)[i]];
+        const SDFAtom& atom = mol.atoms[(*ring)[i]];
         if (atom.element == "C") {
             if (atom.bonds.size() != 3) {  // C原子必须有3个键
                 return false;
@@ -302,14 +309,14 @@ bool is_aromatic_bond(const Molecule& mol, Bond& bond) {
     return aromatic;
 }
 
-bool isAromaticCarbon(const Molecule& mol, const Atom& atom) {
+bool isAromaticCarbon(const SDFMolecule& mol, const SDFAtom& atom) {
     if (atom.element != "C") return false;
     return atom.inAromaticRing;
 }
 
-void setAtomTypes(Molecule& mol) {
+void setAtomTypes(SDFMolecule& mol) {
     identifyAromaticRings(mol);
-    for (Atom& atom : mol.atoms) {
+    for (SDFAtom& atom : mol.atoms) {
      // 打印当前原子的连接信息
         //std::cout << "Processing Atom " << atom.id + 1 << " (" << atom.element << "). Connected to: ";
         //for (int connectedAtom : atom.bonds) {
@@ -323,7 +330,7 @@ void setAtomTypes(Molecule& mol) {
                 continue;
             }
             int bondIndex = atom.bonds[0];
-            const Atom& connectedAtom = mol.atoms[bondIndex];
+            const SDFAtom& connectedAtom = mol.atoms[bondIndex];
             if (connectedAtom.element == "O" || connectedAtom.element == "N") {
                 atom.type = "HD";
                 //std::cout << "H atom (id: " << atom.id + 1 << ") connected to " 
@@ -338,7 +345,7 @@ void setAtomTypes(Molecule& mol) {
         } else if (atom.element == "O") {
             bool connectedToH = false;
             for (int bondIndex : atom.bonds) {
-                const Atom& connectedAtom = mol.atoms[mol.bonds[bondIndex].atom1 == atom.id ? mol.bonds[bondIndex].atom2 : mol.bonds[bondIndex].atom1];
+                const SDFAtom& connectedAtom = mol.atoms[mol.bonds[bondIndex].atom1 == atom.id ? mol.bonds[bondIndex].atom2 : mol.bonds[bondIndex].atom1];
                 if (connectedAtom.element == "H") {
                     connectedToH = true;
                     break;
@@ -348,7 +355,7 @@ void setAtomTypes(Molecule& mol) {
         } else if (atom.element == "N") {
             bool connectedToH = false;
             for (int bondIndex : atom.bonds) {
-                const Atom& connectedAtom = mol.atoms[mol.bonds[bondIndex].atom1 == atom.id ? mol.bonds[bondIndex].atom2 : mol.bonds[bondIndex].atom1];
+                const SDFAtom& connectedAtom = mol.atoms[mol.bonds[bondIndex].atom1 == atom.id ? mol.bonds[bondIndex].atom2 : mol.bonds[bondIndex].atom1];
                 if (connectedAtom.element == "H") {
                     connectedToH = true;
                     break;
@@ -365,7 +372,7 @@ void setAtomTypes(Molecule& mol) {
             }
         } else if (atom.element == "C") {
             if (isAromaticCarbon(mol, atom)) {
-                atom.type = "CA";
+                atom.type = "A";
             } else {
                 atom.type = "C"; // 或者其他适当的非芳香碳类型
             }
@@ -373,9 +380,9 @@ void setAtomTypes(Molecule& mol) {
     }
 }
 
-bool is_amide_bond(const Molecule& mol, const Bond& bond) {
-    const Atom& atom1 = mol.atoms[bond.atom1];
-    const Atom& atom2 = mol.atoms[bond.atom2];
+bool is_amide_bond(const SDFMolecule& mol, const SDFBond& bond) {
+    const SDFAtom& atom1 = mol.atoms[bond.atom1];
+    const SDFAtom& atom2 = mol.atoms[bond.atom2];
 
     // 检查是否是C-N键
     if (!((atom1.element == "C" && atom2.element == "N") || 
@@ -384,14 +391,14 @@ bool is_amide_bond(const Molecule& mol, const Bond& bond) {
     }
 
     // 确定哪个是C原子，哪个是N原子
-    const Atom& C_atom = (atom1.element == "C") ? atom1 : atom2;
-    const Atom& N_atom = (atom1.element == "N") ? atom1 : atom2;
+    const SDFAtom& C_atom = (atom1.element == "C") ? atom1 : atom2;
+    const SDFAtom& N_atom = (atom1.element == "N") ? atom1 : atom2;
 
     // 检查C原子是否与O形成双键
     bool C_double_bonded_to_O = false;
     for (int neighbor_index : C_atom.bonds) {
-        const Bond& neighbor_bond = mol.bonds[neighbor_index];
-        const Atom& neighbor_atom = mol.atoms[neighbor_bond.atom1 == C_atom.id ? neighbor_bond.atom2 : neighbor_bond.atom1];
+        const SDFBond& neighbor_bond = mol.bonds[neighbor_index];
+        const SDFAtom& neighbor_atom = mol.atoms[neighbor_bond.atom1 == C_atom.id ? neighbor_bond.atom2 : neighbor_bond.atom1];
         if (neighbor_atom.element == "O" && neighbor_bond.type == 2) {  // 假设type 2表示双键
             C_double_bonded_to_O = true;
             break;
@@ -402,8 +409,8 @@ bool is_amide_bond(const Molecule& mol, const Bond& bond) {
     // 检查N原子是否与H相连
     bool N_bonded_to_H = false;
     for (int neighbor_index : N_atom.bonds) {
-        const Bond& neighbor_bond = mol.bonds[neighbor_index];
-        const Atom& neighbor_atom = mol.atoms[neighbor_bond.atom1 == N_atom.id ? neighbor_bond.atom2 : neighbor_bond.atom1];
+        const SDFBond& neighbor_bond = mol.bonds[neighbor_index];
+        const SDFAtom& neighbor_atom = mol.atoms[neighbor_bond.atom1 == N_atom.id ? neighbor_bond.atom2 : neighbor_bond.atom1];
         if (neighbor_atom.element == "H") {
             N_bonded_to_H = true;
             break;
@@ -418,15 +425,15 @@ bool is_amide_bond(const Molecule& mol, const Bond& bond) {
     return true;
 }
 // 检查是否是终端甲基或三氟甲基
-bool isTerminalMethylOrTrifluoromethyl(const Molecule& mol, int atomId) {
-    const Atom& atom = mol.atoms[atomId];
+bool isTerminalMethylOrTrifluoromethyl(const SDFMolecule& mol, int atomId) {
+    const SDFAtom& atom = mol.atoms[atomId];
     if (atom.element != "C") return false;
     
     int hCount = 0;
     int fCount = 0;
     
     for (int neighborId : atom.bonds) {
-        const Atom& neighbor = mol.atoms[neighborId];
+        const SDFAtom& neighbor = mol.atoms[neighborId];
         if (neighbor.element == "H") hCount++;
         else if (neighbor.element == "F") fCount++;
     }
@@ -434,9 +441,9 @@ bool isTerminalMethylOrTrifluoromethyl(const Molecule& mol, int atomId) {
     return (hCount == 3) || (fCount == 3);
 }
 
-void determineRotatableBonds(Molecule& mol) {
+void determineRotatableBonds(SDFMolecule& mol) {
     findAllRings(mol);
-    for (Bond& bond : mol.bonds) {
+    for (SDFBond& bond : mol.bonds) {
         if (bond.type != 1) {
             bond.rotatable = false;
             continue;
@@ -464,7 +471,7 @@ void determineRotatableBonds(Molecule& mol) {
     setAtomTypes(mol);
 }
 
-std::vector<std::vector<int>> splitMolecule(const Molecule& mol) {
+std::vector<std::vector<int>> splitMolecule(const SDFMolecule& mol) {
     std::vector<std::vector<int>> fragments;
     std::vector<bool> visited(mol.atoms.size(), false);
 
@@ -484,7 +491,7 @@ std::vector<std::vector<int>> splitMolecule(const Molecule& mol) {
                     for (int neighbor : mol.atoms[current].bonds) {
                         if (!visited[neighbor]) {
                             bool rotatable = false;
-                            for (const Bond& bond : mol.bonds) {
+                            for (const SDFBond& bond : mol.bonds) {
                                 if ((bond.atom1 == current && bond.atom2 == neighbor) ||
                                     (bond.atom2 == current && bond.atom1 == neighbor)) {
                                     rotatable = bond.rotatable;
@@ -506,7 +513,7 @@ std::vector<std::vector<int>> splitMolecule(const Molecule& mol) {
     return fragments;
 }
 
-std::vector<int> findLargestFragmentAfterCut(const Molecule& mol, const std::vector<int>& fragment) {
+std::vector<int> findLargestFragmentAfterCut(const SDFMolecule& mol, const std::vector<int>& fragment) {
     std::vector<int> largestCutFragment;
     std::unordered_set<int> fragmentSet(fragment.begin(), fragment.end());
     std::unordered_set<int> allAtoms;
@@ -557,7 +564,7 @@ std::vector<int> findLargestFragmentAfterCut(const Molecule& mol, const std::vec
     return largestCutFragment;
 }
 
-std::vector<std::pair<int, int>> findConnectedRotatableBonds(const Molecule& mol, const std::vector<int>& fragment) {
+std::vector<std::pair<int, int>> findConnectedRotatableBonds(const SDFMolecule& mol, const std::vector<int>& fragment) {
     std::vector<std::pair<int, int>> connectedBonds;
     std::unordered_set<int> fragmentSet(fragment.begin(), fragment.end());
     
@@ -577,7 +584,7 @@ std::vector<std::pair<int, int>> findConnectedRotatableBonds(const Molecule& mol
     return connectedBonds;
 }
 
-std::string outputBranchStructure(const Molecule& mol, const std::vector<int>& rootFragment, 
+std::string outputBranchStructure(const SDFMolecule& mol, const std::vector<int>& rootFragment, 
                             std::unordered_set<int>& processedAtoms) {
     //std::cout << "Entering outputBranchStructure with root fragment size: " << rootFragment.size() << std::endl;
     std::stringstream outstream;
@@ -612,7 +619,7 @@ std::string outputBranchStructure(const Molecule& mol, const std::vector<int>& r
 
             // Output atoms in this branch
             for (int atom : branchFragment) {
-                const Atom& currentAtom = mol.atoms[atom];
+                const SDFAtom& currentAtom = mol.atoms[atom];
                 outstream << std::left << std::setw(6) << "ATOM"
                     << std::right << std::setw(5) << atom + 1
                     << " "
@@ -629,7 +636,7 @@ std::string outputBranchStructure(const Molecule& mol, const std::vector<int>& r
                     << std::setw(6) << std::fixed << std::setprecision(2) << 1.00  // Occupancy
                     << std::setw(6) << std::fixed << std::setprecision(2) << 0.00  // Temperature factor
                     << std::setw(10) << std::fixed << std::setprecision(4) << 0.00  // Empty space
-                    << "  "
+                    << " "
                     << std::left << std::setw(2) << currentAtom.type
                     << std::endl;
             }
@@ -680,7 +687,7 @@ std::string outputBranchStructure(const Molecule& mol, const std::vector<int>& r
      return outstream.str();
 }
 
-std::string outputOptimalFragmentAsPDB(const Molecule& mol) {
+std::string outputOptimalFragmentAsPDB(const SDFMolecule& mol) {
     auto fragments = splitMolecule(mol);
     std::vector<std::vector<int>> optimalFragments;
     int maxConnectedRotatableBonds = -1;
@@ -761,7 +768,7 @@ std::string outputOptimalFragmentAsPDB(const Molecule& mol) {
             std::cerr << "Error: Invalid atom index " << i << std::endl;
             continue;
         }
-        const Atom& atom = mol.atoms[i];
+        const SDFAtom& atom = mol.atoms[i];
         outstream << std::left << std::setw(6) << "ATOM"
                 << std::right << std::setw(5) << i + 1  // Use atom index + 1 as serial
                 << " "
@@ -778,7 +785,7 @@ std::string outputOptimalFragmentAsPDB(const Molecule& mol) {
                 << std::setw(6) << std::fixed << std::setprecision(2) << 1.00  // Occupancy
                 << std::setw(6) << std::fixed << std::setprecision(2) << 0.00  // Temperature factor
                 << std::setw(10) << std::fixed << std::setprecision(4) << 0.00
-                << "  "
+                << " "
                 << std::left << std::setw(2) << atom.type
                 << std::endl;
         processedAtoms.insert(i);
@@ -789,13 +796,24 @@ std::string outputOptimalFragmentAsPDB(const Molecule& mol) {
     //std::cout << "Calling outputBranchStructure" << std::endl;
     outstream << outputBranchStructure(mol, optimalFragment, processedAtoms);
     //std::cout << "outputBranchStructure completed" << std::endl;
-    
-    outstream << "TORSDOF " << maxConnectedRotatableBonds << std::endl;
-    outstream << "END" << std::endl;
+    int totalRotatableBonds = 0;
+    for (const SDFBond& bond : mol.bonds) {
+        if (bond.rotatable) {
+            totalRotatableBonds++;
+        }
+    }    
+    outstream << "TORSDOF " << totalRotatableBonds << std::endl;
     //std::cout << "PDB file writing completed" << std::endl;
     return outstream.str();
 }
 
+std::string SDF2PDBQT(const std::string& filename) {
+    SDFMolecule mol = parseSDF(filename);
+    findAllRings(mol);
+    determineRotatableBonds(mol);
+    setAtomTypes(mol);
+    return outputOptimalFragmentAsPDB(mol);
+}
 
 
 int main(int argc, char* argv[]) {
@@ -824,12 +842,12 @@ int main(int argc, char* argv[]) {
 
     try {
         std::cout << "Parsing SDF file: " << inputFile << std::endl;
-        Molecule mol = parseSDF(inputFile);
+        SDFMolecule mol = parseSDF(inputFile);
         std::cout << "Molecule parsed. Number of atoms: " << mol.atoms.size() << ", Number of bonds: " << mol.bonds.size() << std::endl;
         findAllRings(mol);
         std::cout << "Determining rotatable bonds..." << std::endl;
         determineRotatableBonds(mol);
-        int rotatableBondCount = std::count_if(mol.bonds.begin(), mol.bonds.end(), [](const Bond& b) { return b.rotatable; });
+        int rotatableBondCount = std::count_if(mol.bonds.begin(), mol.bonds.end(), [](const SDFBond& b) { return b.rotatable; });
         setAtomTypes(mol);
         /*
         std::cout << "Number of rotatable bonds: " << rotatableBondCount << std::endl;
