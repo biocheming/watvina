@@ -8,7 +8,7 @@ import os
 import glob
 import stat
 
-import watvina.watvina_python as WATVina
+import watvina.watvina_python as _WATVina
 from watvina.rdkit2pdbqt import *
 
 #something happened when N4 is coming
