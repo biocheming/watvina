@@ -5,14 +5,10 @@ import argparse, configparser
 import time
 import sys
 import os
-#boost_lib = '/opt/boost/boost-linux64/lib'
-#if not boost_lib in os.environ['LD_LIBRARY_PATH']:
-#    os.environ['LD_LIBRARY_PATH'] += ':'+boost_lib
-
 import glob
 import stat
 
-from watvina.watvina_wrapper import WATVina as _WATVina
+import watvina.watvina_python as WATVina
 from watvina.rdkit2pdbqt import *
 
 #something happened when N4 is coming
