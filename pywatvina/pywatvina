@@ -142,8 +142,8 @@ class WATVina:
 	def precalculate(self):
 		self._watvina.set_precalculate_sf()
 
-	def compute_watvina_map(self):
-		self._watvina.compute_watvina_maps()
+	def compute_watvina_map(self,full_atomtypes):
+		self._watvina.compute_watvina_maps(full_atomtypes)
 
 	def dock(self,exhaustiveness=8,n_poses=10,min_rmsd=1.5,energy_range=3,
 		  population_size=8,ga_searching=4,refinement=True,
