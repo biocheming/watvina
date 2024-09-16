@@ -544,10 +544,10 @@ std::vector<std::pair<int, int>> findConnectedRotatableBonds(const Molecule& mol
     return connectedBonds;
 }
 
-void outputBranchStructure(const Molecule& mol, const std::vector<int>& rootFragment, 
-                           std::ofstream& outfile, std::unordered_set<int>& processedAtoms) {
+std::string outputBranchStructure(const Molecule& mol, const std::vector<int>& rootFragment, 
+                            std::unordered_set<int>& processedAtoms) {
     //std::cout << "Entering outputBranchStructure with root fragment size: " << rootFragment.size() << std::endl;
-
+    std::stringstream outstream;
     std::function<void(int, int)> processBranch = [&](int parentAtom, int startAtom) {
         if (processedAtoms.count(startAtom) > 0) return;
 
@@ -575,12 +575,12 @@ void outputBranchStructure(const Molecule& mol, const std::vector<int>& rootFrag
         dfs(startAtom);
 
         if (!branchFragment.empty()) {
-            outfile << "BRANCH " << parentAtom + 1 << " " << startAtom + 1 << std::endl;
+            outstream << "BRANCH " << parentAtom + 1 << " " << startAtom + 1 << std::endl;
 
             // Output atoms in this branch
             for (int atom : branchFragment) {
                 const Atom& currentAtom = mol.atoms[atom];
-                outfile << std::left << std::setw(6) << "ATOM"
+                outstream << std::left << std::setw(6) << "ATOM"
                     << std::right << std::setw(5) << atom + 1
                     << " "
                     << std::left << std::setw(4) << currentAtom.name
@@ -620,7 +620,7 @@ void outputBranchStructure(const Molecule& mol, const std::vector<int>& rootFrag
                 }
             }
 
-            outfile << "ENDBRANCH " << parentAtom + 1 << " " << startAtom + 1 << std::endl;
+            outstream << "ENDBRANCH " << parentAtom + 1 << " " << startAtom + 1 << std::endl;
         }
     };
 
@@ -644,9 +644,10 @@ void outputBranchStructure(const Molecule& mol, const std::vector<int>& rootFrag
     }
 
      //std::cout << "Exiting outputBranchStructure" << std::endl;
+     return outstream.str();
 }
 
-void outputOptimalFragmentAsPDB(const Molecule& mol, const std::string& filename) {
+std::string outputOptimalFragmentAsPDB(const Molecule& mol) {
     auto fragments = splitMolecule(mol);
     std::vector<std::vector<int>> optimalFragments;
     int maxConnectedRotatableBonds = -1;
@@ -713,16 +714,12 @@ void outputOptimalFragmentAsPDB(const Molecule& mol, const std::string& filename
     //          << ", Connected rotatable bonds: " << maxConnectedRotatableBonds
     //          << ", Largest cut fragment size: " << largestCutFragment.size() << std::endl;
 
-     std::ofstream outfile(filename);
-    if (!outfile) {
-        std::cerr << "Unable to open file: " << filename << std::endl;
-        return;
-    }
+    std::stringstream outstream;
 
     //std::cout << "Writing ROOT" << std::endl;
-    outfile << "REMARK   1 SDF2PDBQT" << std::endl;
-    outfile << "REMARK   2 WATVINA"   << std::endl;
-    outfile << "ROOT" << std::endl;
+    outstream << "REMARK   1 SDF2PDBQT" << std::endl;
+    outstream << "REMARK   2 WATVINA"   << std::endl;
+    outstream << "ROOT" << std::endl;
     std::unordered_set<int> processedAtoms;
 
     // Output the optimal fragment (ROOT) atoms
@@ -732,7 +729,7 @@ void outputOptimalFragmentAsPDB(const Molecule& mol, const std::string& filename
             continue;
         }
         const Atom& atom = mol.atoms[i];
-        outfile << std::left << std::setw(6) << "ATOM"
+        outstream << std::left << std::setw(6) << "ATOM"
                 << std::right << std::setw(5) << i + 1  // Use atom index + 1 as serial
                 << " "
                 << std::left << std::setw(4) << atom.name
@@ -754,15 +751,16 @@ void outputOptimalFragmentAsPDB(const Molecule& mol, const std::string& filename
         processedAtoms.insert(i);
     }
 
-    outfile << "ENDROOT" << std::endl;
+    outstream << "ENDROOT" << std::endl;
 
     //std::cout << "Calling outputBranchStructure" << std::endl;
-    outputBranchStructure(mol, optimalFragment, outfile, processedAtoms);
+    outstream << outputBranchStructure(mol, optimalFragment, processedAtoms);
     //std::cout << "outputBranchStructure completed" << std::endl;
     
-    outfile << "TORSDOF " << maxConnectedRotatableBonds << std::endl;
-    outfile << "END" << std::endl;
+    outstream << "TORSDOF " << maxConnectedRotatableBonds << std::endl;
+    outstream << "END" << std::endl;
     //std::cout << "PDB file writing completed" << std::endl;
+    return outstream.str();
 }
 
 
@@ -816,7 +814,14 @@ int main(int argc, char* argv[]) {
 
         std::cout << "Outputting optimal fragment as PDB to: " << outputFile << std::endl;
         */
-        outputOptimalFragmentAsPDB(mol, outputFile);
+        std::string pdbqtcontent = outputOptimalFragmentAsPDB(mol);
+        std::ofstream outfile(outputFile);
+        if (!outfile) {
+            std::cerr << "Unable to open file: " << outputFile << std::endl;
+            return 1;
+        }        
+        outfile << pdbqtcontent;
+        outfile.close();
         std::cout << "PDB file written successfully." << std::endl;
 
         return 0;
