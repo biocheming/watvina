@@ -23,6 +23,7 @@ struct Atom {
     std::string type;
     std::vector<int> bonds;
     bool inRing;
+    bool inAromaticRing;
      Atom() : x(0), y(0), z(0), inRing(false) ,type("") {}  // 默认构造函数
 };
 
@@ -194,6 +195,37 @@ void findAllRings(Molecule& mol) {
     }
 }
 
+void identifyAromaticRings(Molecule& mol) {
+    for (auto& ring : mol.rings) {
+        if (ring.size() == 5 || ring.size() == 6) {
+            bool isAromatic = true;
+            for (int atomId : ring) {
+                const Atom& atom = mol.atoms[atomId];
+                if (atom.element != "C" && atom.element != "N" && atom.element != "O" && atom.element != "S") {
+                    isAromatic = false;
+                    break;
+                }
+            }
+            if (isAromatic) {
+                for (int atomId : ring) {
+                    mol.atoms[atomId].inAromaticRing = true;
+                }
+                for (size_t i = 0; i < ring.size(); ++i) {
+                    int atom1 = ring[i];
+                    int atom2 = ring[(i + 1) % ring.size()];
+                    for (Bond& bond : mol.bonds) {
+                        if ((bond.atom1 == atom1 && bond.atom2 == atom2) ||
+                            (bond.atom1 == atom2 && bond.atom2 == atom1)) {
+                            bond.isAromatic = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 bool is_aromatic_bond(const Molecule& mol, Bond& bond) {
     // 获取键连接的两个原子
     const Atom& atom1 = mol.atoms[bond.atom1];
@@ -270,7 +302,13 @@ bool is_aromatic_bond(const Molecule& mol, Bond& bond) {
     return aromatic;
 }
 
+bool isAromaticCarbon(const Molecule& mol, const Atom& atom) {
+    if (atom.element != "C") return false;
+    return atom.inAromaticRing;
+}
+
 void setAtomTypes(Molecule& mol) {
+    identifyAromaticRings(mol);
     for (Atom& atom : mol.atoms) {
      // 打印当前原子的连接信息
         //std::cout << "Processing Atom " << atom.id + 1 << " (" << atom.element << "). Connected to: ";
@@ -326,15 +364,10 @@ void setAtomTypes(Molecule& mol) {
                 atom.type = "SA";
             }
         } else if (atom.element == "C") {
-            bool isAromatic = false;
-            for (int bondIndex : atom.bonds) {
-                if (mol.bonds[bondIndex].isAromatic) {
-                    isAromatic = true;
-                    break;
-                }
-            }
-            if (isAromatic || atom.bonds.size() < 4) {
+            if (isAromaticCarbon(mol, atom)) {
                 atom.type = "CA";
+            } else {
+                atom.type = "C"; // 或者其他适当的非芳香碳类型
             }
         } 
     }
