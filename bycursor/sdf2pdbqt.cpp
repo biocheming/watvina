@@ -96,7 +96,7 @@ SDFMolecule parseSDFImpl(std::istream& input) {
         atom.massDifference = (line.length() >= 35) ? std::stoi(line.substr(34, 2)) : 0;
         atom.charge = (line.length() >= 38) ? std::stoi(line.substr(36, 3)) : 0;
         atom.stereoParity = (line.length() >= 41) ? std::stoi(line.substr(39, 3)) : 0;
-        atom.hydrogenCount = (line.length() >= 44) ? std::stoi(line.substr(42, 3)) - 1 : 0; // 减1以获得实际数量
+        atom.hydrogenCount = (line.length() >= 44) ? std::stoi(line.substr(42, 3)) : 0; // 减1以获得实际数量
         atom.stereoCount = (line.length() >= 47) ? std::stoi(line.substr(45, 3)) : 0;
         atom.valence = (line.length() >= 50) ? std::stoi(line.substr(48, 3)) : 0;
         atom.extraInfo = (line.length() > 51) ? line.substr(51) : "";
