@@ -11,7 +11,7 @@
 #include <iomanip>
 #include <unordered_set>
 #include <functional>
-
+#include <climits> 
 #include <stdexcept>
 #include <getopt.h>
 
@@ -96,7 +96,7 @@ SDFMolecule parseSDFImpl(std::istream& input) {
         atom.massDifference = (line.length() >= 35) ? std::stoi(line.substr(34, 2)) : 0;
         atom.charge = (line.length() >= 38) ? std::stoi(line.substr(36, 3)) : 0;
         atom.stereoParity = (line.length() >= 41) ? std::stoi(line.substr(39, 3)) : 0;
-        atom.hydrogenCount = (line.length() >= 44) ? std::stoi(line.substr(42, 3)) : 0; // 减1以获得实际数量
+        atom.hydrogenCount = (line.length() >= 44) ? std::stoi(line.substr(42, 3)): 0; // 减1以获得实际数量
         atom.stereoCount = (line.length() >= 47) ? std::stoi(line.substr(45, 3)) : 0;
         atom.valence = (line.length() >= 50) ? std::stoi(line.substr(48, 3)) : 0;
         atom.extraInfo = (line.length() > 51) ? line.substr(51) : "";
@@ -372,7 +372,7 @@ bool is_aromatic_bond(const SDFMolecule& mol, SDFBond& bond) {
 
 bool isAromaticCarbon(const SDFMolecule& mol, const SDFAtom& atom) {
     if (atom.element != "C") return false;
-    return atom.inAromaticRing;
+    return atom.inAromaticRing && atom.bonds.size() < 4;
 }
 
 void setAtomTypes(SDFMolecule& mol) {
@@ -767,15 +767,15 @@ std::string outputOptimalFragmentAsPDB(const SDFMolecule& mol) {
             optimalFragments.push_back(fragment);
         }
     }
-
+    std::cout << "optimalFragments.size() by rule 1= " << optimalFragments.size() << std::endl;
     // Second rule: if multiple fragments have the same max connected rotatable bonds,
     // choose the one that produces the largest cut fragment
     std::vector<int> optimalFragment;
     if (optimalFragments.size() > 1) {
-        int maxCutSize = -1;
+        int maxCutSize = INT_MAX;
         for (const auto& fragment : optimalFragments) {
             auto cutFragment = findLargestFragmentAfterCut(mol, fragment);
-            if (cutFragment.size() > maxCutSize) {
+            if (cutFragment.size() < maxCutSize) {
                 maxCutSize = cutFragment.size();
                 largestCutFragment = cutFragment;
                 optimalFragment = fragment;
