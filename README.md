@@ -134,10 +134,10 @@ Input options:
       --pharma arg           Pharmacophore[ph4] constrained file
       --ligands_dir arg      Directory for ligands
       --multiligs_pdbqt arg  PDBQT file containing multi ligands
-  -l, --ligand arg           Ligand.pdbqt(ligand file, PDBQT)
+  -l, --ligand arg           Ligand.pdbqt(ligand file, PDBQT/SDF)
 
  Output options:
-  -o, --out arg             Output models (PDBQT)
+  -o, --out arg             Output models (PDBQT/SDF)
       --out_dir arg         Output directory for batch mode (default: OUTDIR)
       --score_cutoff arg    The cutoff score for output (default: 10000)
       --ph4_cutoff arg      The cutoff of ph4 for output (default: -1.0)
@@ -173,7 +173,7 @@ Input options:
       --genph4               Generate pseudo pharmacophore model in pdb format
       --local_only           Do local search only
       --implicitsol          Implicit solvation model result in an 
-                             implicitsol.pdb
+                             wgrid.pdb
       --grid_space arg       Grid space (default: 0.375)
       --weight_vdw arg       Vdw weight (default: 0.184)
       --weight_hbond arg     Hydrogen bond weight (default: 1.000)
