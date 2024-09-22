@@ -126,7 +126,7 @@ REMARK TORSION INDEX  18  17  16  21  0.16   0  3
 ### 2.9 Help information
 ```
 Input options:
-  -r, --receptor arg         Rigid part of the receptor (PDBQT)
+  -r, --receptor arg         Rigid part of the receptor (PDBQT/PDB)
       --flex arg             Flexible part of the receptor (pdbqt)
       --template arg         Template ph4 (pdb)
   -w, --water arg            Water file (O coordinates file with resname HOH, 
