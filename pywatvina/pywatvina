@@ -455,7 +455,7 @@ if __name__ == '__main__':
 	box_size=(watvinaPars['size_x'],watvinaPars['size_y'],watvinaPars['size_z'])
 	#wv.set_box(box_center,box_size,watvinaPars['grid_space'])
 
-	wv.precalculate(full_atom_type=True)
+	wv.precalculate()
 	
 	if (watvinaPars['water'] is not None) or (watvinaPars['implicitsol']):
 		wv.set_water(watvinaPars['implicitsol'], watvinaPars['water'])
