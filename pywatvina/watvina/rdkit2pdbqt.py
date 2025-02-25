@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
-Original code from Open Drug Discovery Toolkit (ODDT), J Cheminform 7, 26 (2015). 
-Modified by Ximing XU, Rongfeng ZOU, Hongrui LIN
+Original code from Open Drug Discovery Toolkit (ODDT), J Cheminform 7, 26 (2015).
+Modified by Ximing XU, Rongfeng ZOU, Hongrui LIN, Xiao WANG
 xuximing@ouc.edu.cn
 version 2023-12-07 tested with RDkit 2024.03.1pre
 '''
@@ -17,6 +17,8 @@ import sys
 from rdkit.Chem import rdFMCS
 from rdkit.Chem.rdMolAlign import AlignMol
 from rdkit.Chem import ChemicalForceFields
+
+
 
 #### By Lin Hongrui
 def get_core_alignment_for_template_docking(reference_mol, query_mol, core_atom_mapping_dict):
@@ -106,9 +108,9 @@ def PDBQTAtomLines(mol, donors, acceptors):
             pdbqt_line += 'SA'
         else:
             if len(atom.GetSymbol()) >1:
-                pdbqt_line += atom.GetSymbol()    
+                pdbqt_line += atom.GetSymbol()
             else:
-                pdbqt_line += (atom.GetSymbol() + ' ') 			
+                pdbqt_line += (atom.GetSymbol() + ' ')
         pdbqt_lines.append(pdbqt_line)
     return pdbqt_lines
 
@@ -156,7 +158,7 @@ def MolCoreToPDBQTBlock(mol, core_atom_idx_list, flexible=True, addHs=False, com
         #rot_bond = Chem.MolFromSmarts('[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]') # From Chemaxon
         rot_bond  = Chem.MolFromSmarts('[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]') #single and not ring, really not in ring?
         bond_atoms = list(mol.GetSubstructMatches(rot_bond))
-        
+
         exclude_list = ['[NX3]-[CX3]=[O,N]', 'C(=[O;!R])N', '[!#1]-[C;H3,Cl3,F3,Br3]']
         excluded_atoms = []
         for excluded_smarts in exclude_list:
@@ -198,7 +200,7 @@ def MolCoreToPDBQTBlock(mol, core_atom_idx_list, flexible=True, addHs=False, com
         # Fragment molecule on bonds to ge rigid fragments
         bond_ids = [mol.GetBondBetweenAtoms(a1, a2).GetIdx()
                     for a1, a2 in bond_atoms]
-        
+
         if bond_ids:
             for i, b_index in enumerate(bond_ids):
                 tmp_frags= Chem.FragmentOnBonds(mol, [b_index], addDummies=False)
@@ -271,7 +273,7 @@ def MolCoreToPDBQTBlock(mol, core_atom_idx_list, flexible=True, addHs=False, com
             match_num.append(count_match(x, core_atom_idx_list))
         pop_num = match_num.index(max(match_num))
 
-####By Zou Rongfeng 
+####By Zou Rongfeng
         # Start writting the lines with ROOT
         pdbqt_lines.append('ROOT')
         frag = frags.pop(pop_num)
@@ -339,57 +341,69 @@ def MolToPDBQTBlock(mol, flexible=True, addHs=False, computeCharges=False):
     return MolCoreToPDBQTBlock(mol, core_atom_idx_list, flexible, addHs, computeCharges)
 
 if __name__ == "__main__":
+    #By Xiao WANG
     import argparse
     parser = argparse.ArgumentParser(prog='rdkit2pdbqt.py', description='For example: rdkit2pdbqt.py -l ligand.sdf scaffold.sdf')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-r', '--receptor', help='receptor file in pdb format')
     group.add_argument('-l', '--ligand', help='ligand file in sdf format, appending a core sdf file if available', nargs='+')
+
+    parser.add_argument('-out', '--output', required=True, help='output file in pdbqt format')
+
     args = parser.parse_args()
 
-    if args.receptor:
-        receptor_mol=Chem.MolFromPDBFile(sys.argv[2], removeHs=False)
-        receptor_lines=MolToPDBQTBlock(receptor_mol, False, False, True)
-        print(receptor_lines)
-        exit()
-    elif args.ligand:
-        lig_and_core = args.ligand
-        mol=Chem.MolFromMolFile(lig_and_core[0],removeHs=False, sanitize = False)
-        mol_problems = Chem.DetectChemistryProblems(mol)
-        if len(mol_problems) > 0:
-            for problem in mol_problems:
-                if "N, 4" in problem.Message():
-                    at_idx = problem.GetAtomIdx()
-                    atom = mol.GetAtomWithIdx(at_idx)
-                    chg = atom.GetFormalCharge()
-                    print(f'REMARK    N {at_idx} with formal charge {chg}')
-                    atom.SetFormalCharge(1)
-                    atom.UpdatePropertyCache()
-                else:
-                    print(problem.Message())
-                    exit()
-        Chem.SanitizeMol(mol)
-        core_atom_idx_list = []
-        if len(lig_and_core) == 2:
-            #scaffold=Chem.MolFromMolFile(lig_and_core[1],removeHs=False)
-            #For better solution: https://github.com/proteneer/timemachine/blob/master/timemachine/fe/atom_mapping.py
-            #mcs = Chem.MolFromSmarts(rdFMCS.FindMCS([mol, scaffold]).smartsString)
-            #scaffold_atoms = list(mol.GetSubstructMatch(mcs))
-            #ref_atom_mapping_list = list(scaffold.GetSubstructMatch(mcs))
-            
-            #We treat the lig_and_core as the scaffold to reduce the MCS searching time.
-            scaffold=Chem.MolFromMolFile(lig_and_core[1],removeHs=False)
-            mcs=Chem.RemoveHs(scaffold)
-            mcs_smarts=Chem.MolToSmarts(mcs)
-            #print(f"REMARK  MCS_SMARTS {mcs_smarts}")
-            if mol.HasSubstructMatch(mcs):
-                scaffold_atoms = list(mol.GetSubstructMatch(mcs))
-                ref_atom_mapping_list = list(scaffold.GetSubstructMatch(mcs))
-                core_atom_mapping_dict = dict(zip(scaffold_atoms, ref_atom_mapping_list))
-                core_atom_idx_list = get_core_alignment_for_template_docking(scaffold, mol, core_atom_mapping_dict)
-            else:
-                print("Core matching failed.")
-                exit()
+    try:
+        if args.receptor:
+            receptor_mol=Chem.MolFromPDBFile(sys.argv[2], removeHs=False)
+            receptor_lines=MolToPDBQTBlock(receptor_mol, False, False, True)
+            #print(receptor_lines)
+            with open(args.output, 'w', encoding='utf-8') as f:
+                f.write(receptor_lines)  # 写入文件，不会有 BOM
+            exit()
+        elif args.ligand:
+            lig_and_core = args.ligand
+            mol=Chem.MolFromMolFile(lig_and_core[0],removeHs=False, sanitize = False)
+            mol_problems = Chem.DetectChemistryProblems(mol)
+            if len(mol_problems) > 0:
+                for problem in mol_problems:
+                    if "N, 4" in problem.Message():
+                        at_idx = problem.GetAtomIdx()
+                        atom = mol.GetAtomWithIdx(at_idx)
+                        chg = atom.GetFormalCharge()
+                        print(f'REMARK    N {at_idx} with formal charge {chg}')
+                        atom.SetFormalCharge(1)
+                        atom.UpdatePropertyCache()
+                    else:
+                        print(problem.Message())
+                        exit()
+            Chem.SanitizeMol(mol)
+            core_atom_idx_list = []
+            if len(lig_and_core) == 2:
+                #scaffold=Chem.MolFromMolFile(lig_and_core[1],removeHs=False)
+                #For better solution: https://github.com/proteneer/timemachine/blob/master/timemachine/fe/atom_mapping.py
+                #mcs = Chem.MolFromSmarts(rdFMCS.FindMCS([mol, scaffold]).smartsString)
+                #scaffold_atoms = list(mol.GetSubstructMatch(mcs))
+                #ref_atom_mapping_list = list(scaffold.GetSubstructMatch(mcs))
 
-        pdbqtlines=MolCoreToPDBQTBlock(mol, core_atom_idx_list, True, False, True)
-        print(pdbqtlines)
-        exit()            
+                #We treat the lig_and_core as the scaffold to reduce the MCS searching time.
+                scaffold=Chem.MolFromMolFile(lig_and_core[1],removeHs=False)
+                mcs=Chem.RemoveHs(scaffold)
+                mcs_smarts=Chem.MolToSmarts(mcs)
+                #print(f"REMARK  MCS_SMARTS {mcs_smarts}")
+                if mol.HasSubstructMatch(mcs):
+                    scaffold_atoms = list(mol.GetSubstructMatch(mcs))
+                    ref_atom_mapping_list = list(scaffold.GetSubstructMatch(mcs))
+                    core_atom_mapping_dict = dict(zip(scaffold_atoms, ref_atom_mapping_list))
+                    core_atom_idx_list = get_core_alignment_for_template_docking(scaffold, mol, core_atom_mapping_dict)
+                else:
+                    print("Core matching failed.")
+                    exit()
+
+            pdbqtlines=MolCoreToPDBQTBlock(mol, core_atom_idx_list, True, False, True)
+            #print(pdbqtlines)
+            with open(args.output, 'w', encoding='utf-8') as f:
+                f.write(pdbqtlines)  # No BOM for output
+            exit()
+    except Exception as e:
+            print(f"Error：{str(e)}")
+            sys.exit(1)
